@@ -1,0 +1,251 @@
+TWIST ERP - Backend API Folder Structure
+=========================================
+
+/api
+  /auth
+    - POST   /login
+    - POST   /logout
+    - POST   /refresh-token
+    - GET    /me
+    - POST   /change-password
+
+  /users
+    - GET    /users
+    - GET    /users/:id
+    - POST   /users
+    - PUT    /users/:id
+    - DELETE /users/:id
+    - POST   /users/:id/attachments
+    - DELETE /users/:id/attachments/:attachmentId
+
+  /roles
+    - GET    /roles
+    - GET    /roles/:id
+    - POST   /roles
+    - PUT    /roles/:id
+    - DELETE /roles/:id
+
+  /projects
+    - GET    /projects
+    - GET    /projects/:id
+    - POST   /projects
+    - PUT    /projects/:id
+    - DELETE /projects/:id
+    - POST   /projects/:id/attachments
+    - GET    /projects/:id/orders
+
+  /project-orders
+    - GET    /project-orders
+    - GET    /project-orders/:id
+    - POST   /project-orders
+    - PUT    /project-orders/:id
+    - DELETE /project-orders/:id
+    - GET    /project-orders/:id/print
+
+  /tasks
+    - GET    /tasks
+    - GET    /tasks/:id
+    - POST   /tasks
+    - PUT    /tasks/:id
+    - DELETE /tasks/:id
+    - PUT    /tasks/:id/status
+
+  /vehicles
+    - GET    /vehicles
+    - GET    /vehicles/:id
+    - POST   /vehicles
+    - PUT    /vehicles/:id
+    - DELETE /vehicles/:id
+    - POST   /vehicles/:id/attachments
+    - GET    /vehicles/:id/maintenance-history
+
+  /drivers
+    - GET    /drivers
+    - GET    /drivers/:id
+    - POST   /drivers
+    - PUT    /drivers/:id
+    - DELETE /drivers/:id
+
+  /fuel-logs
+    - GET    /fuel-logs
+    - GET    /fuel-logs/:id
+    - POST   /fuel-logs
+    - PUT    /fuel-logs/:id
+    - DELETE /fuel-logs/:id
+    - GET    /fuel-logs/:id/voucher
+
+  /trip-orders
+    - GET    /trip-orders
+    - GET    /trip-orders/:id
+    - POST   /trip-orders
+    - PUT    /trip-orders/:id
+    - DELETE /trip-orders/:id
+
+  /items
+    - GET    /items
+    - GET    /items/:id
+    - POST   /items
+    - PUT    /items/:id
+    - DELETE /items/:id
+    - POST   /items/bulk-delete
+    - GET    /items/export
+    - POST   /items/import
+    - POST   /items/:id/attachments
+
+  /categories
+    - GET    /categories
+    - GET    /categories/:id
+    - POST   /categories
+    - PUT    /categories/:id
+    - DELETE /categories/:id
+
+  /stock-movements
+    - GET    /stock-movements
+    - GET    /stock-movements/:id
+    - POST   /stock-movements
+    - PUT    /stock-movements/:id
+    - DELETE /stock-movements/:id
+    - GET    /stock-movements/:id/voucher
+
+  /properties
+    - GET    /properties
+    - GET    /properties/:id
+    - POST   /properties
+    - PUT    /properties/:id
+    - DELETE /properties/:id
+
+  /units
+    - GET    /units
+    - GET    /units/:id
+    - POST   /units
+    - PUT    /units/:id
+    - DELETE /units/:id
+
+  /leases
+    - GET    /leases
+    - GET    /leases/:id
+    - POST   /leases
+    - PUT    /leases/:id
+    - DELETE /leases/:id
+
+  /service-requests
+    - GET    /service-requests
+    - GET    /service-requests/:id
+    - POST   /service-requests
+    - PUT    /service-requests/:id
+    - DELETE /service-requests/:id
+
+  /work-orders
+    - GET    /work-orders
+    - GET    /work-orders/:id
+    - POST   /work-orders
+    - PUT    /work-orders/:id
+    - DELETE /work-orders/:id
+    - POST   /work-orders/:id/attachments
+    - GET    /work-orders/:id/voucher
+
+  /preventive-maintenance
+    - GET    /preventive-maintenance
+    - GET    /preventive-maintenance/:id
+    - POST   /preventive-maintenance
+    - PUT    /preventive-maintenance/:id
+    - DELETE /preventive-maintenance/:id
+
+  /employees
+    - GET    /employees
+    - GET    /employees/:id
+    - POST   /employees
+    - PUT    /employees/:id
+    - DELETE /employees/:id
+    - POST   /employees/:id/attachments
+
+  /attendance
+    - GET    /attendance
+    - GET    /attendance/:id
+    - POST   /attendance
+    - PUT    /attendance/:id
+    - DELETE /attendance/:id
+    - POST   /attendance/import-from-machine
+    - GET    /attendance/export
+    - GET    /attendance/summary
+
+  /leaves
+    - GET    /leaves
+    - GET    /leaves/:id
+    - POST   /leaves
+    - PUT    /leaves/:id
+    - DELETE /leaves/:id
+    - PUT    /leaves/:id/approve
+    - PUT    /leaves/:id/reject
+
+  /payroll
+    - GET    /payroll
+    - GET    /payroll/:id
+    - POST   /payroll
+    - PUT    /payroll/:id
+    - DELETE /payroll/:id
+    - PUT    /payroll/:id/process
+    - PUT    /payroll/:id/pay
+    - GET    /payroll/:id/payslip
+    - GET    /payroll/export
+
+  /invoices
+    - GET    /invoices
+    - GET    /invoices/:id
+    - POST   /invoices
+    - PUT    /invoices/:id
+    - DELETE /invoices/:id
+    - GET    /invoices/:id/print
+
+  /expenses
+    - GET    /expenses
+    - GET    /expenses/:id
+    - POST   /expenses
+    - PUT    /expenses/:id
+    - DELETE /expenses/:id
+
+  /payments
+    - GET    /payments
+    - GET    /payments/:id
+    - POST   /payments
+    - PUT    /payments/:id
+    - DELETE /payments/:id
+    - GET    /payments/:id/voucher
+
+  /company
+    - GET    /company/profile
+    - PUT    /company/profile
+    - GET    /company/branches
+    - POST   /company/branches
+    - PUT    /company/branches/:id
+    - DELETE /company/branches/:id
+    - GET    /company/theme
+    - PUT    /company/theme
+
+  /numbering
+    - GET    /numbering
+    - GET    /numbering/:id
+    - PUT    /numbering/:id
+
+  /workflows
+    - GET    /workflows
+    - GET    /workflows/:id
+    - POST   /workflows
+    - PUT    /workflows/:id
+    - DELETE /workflows/:id
+
+  /audit
+    - GET    /audit
+    - GET    /audit/:id
+
+  /dashboard
+    - GET    /dashboard/stats
+    - GET    /dashboard/charts
+    - GET    /dashboard/recent-activities
+
+  /reports
+    - GET    /reports/attendance
+    - GET    /reports/payroll
+    - GET    /reports/fleet
+    - GET    /reports/inventory
+    - GET    /reports/financial
