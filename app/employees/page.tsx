@@ -1,23 +1,25 @@
 "use client"
 
-import { useState } from "react"
 import { ErpLayout } from "@/components/erp-layout"
-import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CrudModal } from "@/components/crud-modal"
 import { DeleteDialog } from "@/components/delete-dialog"
-import { FormFieldWrapper } from "@/components/form-field-wrapper"
-import { PrintTemplate } from "@/components/print-template"
 import { AttachmentUploader } from "@/components/attachment-uploader"
-import { navigationConfig } from "@/lib/navigation"
-import { Plus, Search, MoreVertical, Edit, Trash2, Printer, UserCircle } from "lucide-react"
+import { FormFieldWrapper } from "@/components/form-field-wrapper"
+import { ViewSwitcher } from "@/components/view-switcher"
+import { DataTable, SortableHeader } from "@/components/data-table"
+import type { ColumnDef } from "@tanstack/react-table"
+import { Plus, Search, MoreVertical, Edit, Trash2, UserCircle, Printer, Phone } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { toast } from "sonner"
-import { generateId, simulateDelay, formatDate, formatDateTime } from "@/lib/utils"
+import { useState } from "react"
+import { useToast } from "@/hooks/use-toast"
+import { navigationConfig } from "@/lib/navigation"
+import { formatDate } from "@/lib/utils"
 
 interface Employee {
   id: string
@@ -88,13 +90,14 @@ const mockEmployees: Employee[] = [
 ]
 
 export default function EmployeesPage() {
-  const [employees, setEmployees] = useState<Employee[]>(mockEmployees)
+  const { toast } = useToast()
+  const [employees, setEmployees] = useState(mockEmployees)
+  const [viewMode, setViewMode] = useState<"list" | "grid">("grid")
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [currentEmployee, setCurrentEmployee] = useState<any>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [employeeToDelete, setEmployeeToDelete] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false)
-  const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
@@ -103,16 +106,15 @@ export default function EmployeesPage() {
     position: "",
     department: "",
     branch: "",
-    status: "active" as "active" | "inactive",
     hireDate: "",
     salary: 0,
   })
 
   const filteredEmployees = employees.filter(
-    (emp) =>
-      emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.employeeId.toLowerCase().includes(searchTerm.toLowerCase()),
+    (employee) =>
+      employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.department.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
   const handleAdd = () => {
@@ -123,11 +125,10 @@ export default function EmployeesPage() {
       position: "",
       department: "",
       branch: "",
-      status: "active",
       hireDate: "",
       salary: 0,
     })
-    setIsAddModalOpen(true)
+    setIsModalOpen(true)
   }
 
   const handleEdit = (employee: Employee) => {
@@ -139,21 +140,20 @@ export default function EmployeesPage() {
       position: employee.position,
       department: employee.department,
       branch: employee.branch,
-      status: employee.status,
       hireDate: employee.hireDate,
       salary: employee.salary,
     })
-    setIsEditModalOpen(true)
+    setIsModalOpen(true)
   }
 
   const handleDelete = (employee: Employee) => {
     setCurrentEmployee(employee)
-    setIsDeleteDialogOpen(true)
+    setDeleteDialogOpen(true)
   }
 
   const handlePrint = (employee: Employee) => {
     setCurrentEmployee(employee)
-    setIsPrintModalOpen(true)
+    toast.success("Print functionality not implemented yet")
   }
 
   const handleSubmitAdd = async () => {
@@ -163,17 +163,17 @@ export default function EmployeesPage() {
     }
 
     setIsLoading(true)
-    await simulateDelay(1000)
+    // await simulateDelay(1000)
 
     const newEmployee: Employee = {
-      id: generateId(),
+      id: Math.random().toString(36).substr(2, 9),
       employeeId: `EMP-${String(employees.length + 1).padStart(3, "0")}`,
       ...formData,
       attachments: [],
     }
 
     setEmployees([newEmployee, ...employees])
-    setIsAddModalOpen(false)
+    setIsModalOpen(false)
     setIsLoading(false)
     toast.success("Employee added successfully")
   }
@@ -182,10 +182,10 @@ export default function EmployeesPage() {
     if (!currentEmployee) return
 
     setIsLoading(true)
-    await simulateDelay(1000)
+    // await simulateDelay(1000)
 
     setEmployees(employees.map((emp) => (emp.id === currentEmployee.id ? { ...emp, ...formData } : emp)))
-    setIsEditModalOpen(false)
+    setIsModalOpen(false)
     setIsLoading(false)
     setCurrentEmployee(null)
     toast.success("Employee updated successfully")
@@ -195,10 +195,10 @@ export default function EmployeesPage() {
     if (!currentEmployee) return
 
     setIsLoading(true)
-    await simulateDelay(1000)
+    // await simulateDelay(1000)
 
     setEmployees(employees.filter((emp) => emp.id !== currentEmployee.id))
-    setIsDeleteDialogOpen(false)
+    setDeleteDialogOpen(false)
     setIsLoading(false)
     setCurrentEmployee(null)
     toast.success("Employee deleted successfully")
@@ -206,7 +206,7 @@ export default function EmployeesPage() {
 
   const handleUploadAttachment = (employeeId: string, files: FileList) => {
     const newAttachments = Array.from(files).map((file) => ({
-      id: generateId(),
+      id: Math.random().toString(36).substr(2, 9),
       name: file.name,
       size: file.size,
       type: file.type,
@@ -232,6 +232,76 @@ export default function EmployeesPage() {
     toast.success("Attachment deleted successfully")
   }
 
+  const columns: ColumnDef<Employee>[] = [
+    {
+      accessorKey: "employeeId",
+      header: ({ column }) => <SortableHeader column={column}>Employee ID</SortableHeader>,
+      cell: ({ row }) => <span className="font-medium">{row.getValue("employeeId")}</span>,
+    },
+    {
+      accessorKey: "name",
+      header: ({ column }) => <SortableHeader column={column}>Name</SortableHeader>,
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <UserCircle className="h-5 w-5 text-muted-foreground" />
+          <span className="font-medium">{row.getValue("name")}</span>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "position",
+      header: "Position",
+    },
+    {
+      accessorKey: "department",
+      header: "Department",
+    },
+    {
+      accessorKey: "branch",
+      header: "Branch",
+    },
+    {
+      accessorKey: "phone",
+      header: "Phone",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1">
+          <Phone className="h-3 w-3 text-muted-foreground" />
+          <span className="text-sm">{row.getValue("phone")}</span>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "hireDate",
+      header: "Hire Date",
+      cell: ({ row }) => formatDate(row.getValue("hireDate")),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.getValue("status") as string
+        return <Badge variant={status === "active" ? "default" : "secondary"}>{status}</Badge>
+      },
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <div className="flex gap-1">
+          <Button size="sm" variant="ghost" onClick={() => handleEdit(row.original)}>
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => handlePrint(row.original)}>
+            <Printer className="h-4 w-4" />
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => handleDelete(row.original)}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
+    },
+  ]
+
   return (
     <ErpLayout navigation={navigationConfig}>
       <div className="space-y-6">
@@ -240,10 +310,13 @@ export default function EmployeesPage() {
             <h1 className="text-3xl font-bold text-balance">Employees</h1>
             <p className="text-muted-foreground">Manage employee information and records</p>
           </div>
-          <Button onClick={handleAdd}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Employee
-          </Button>
+          <div className="flex gap-2">
+            <ViewSwitcher view={viewMode} onViewChange={setViewMode} />
+            <Button onClick={handleAdd}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Employee
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-4">
@@ -280,73 +353,79 @@ export default function EmployeesPage() {
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredEmployees.map((employee) => (
-              <Card key={employee.id} className="p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                      <UserCircle className="h-8 w-8 text-primary" />
+          {viewMode === "list" ? (
+            <Card className="p-6">
+              <DataTable columns={columns} data={filteredEmployees} />
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredEmployees.map((employee) => (
+                <Card key={employee.id} className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                        <UserCircle className="h-8 w-8 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">{employee.name}</h3>
+                        <p className="text-sm text-muted-foreground">{employee.employeeId}</p>
+                      </div>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEdit(employee)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        {/* <DropdownMenuItem onClick={() => handlePrint(employee)}>
+                          <Printer className="mr-2 h-4 w-4" />
+                          Print
+                        </DropdownMenuItem> */}
+                        <DropdownMenuItem onClick={() => handleDelete(employee)} className="text-destructive">
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Position: </span>
+                      {employee.position}
                     </div>
                     <div>
-                      <h3 className="font-semibold">{employee.name}</h3>
-                      <p className="text-sm text-muted-foreground">{employee.employeeId}</p>
+                      <span className="text-muted-foreground">Department: </span>
+                      {employee.department}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Branch: </span>
+                      {employee.branch}
+                    </div>
+                    <div className="flex items-center justify-between pt-2">
+                      <Badge variant={employee.status === "active" ? "default" : "secondary"}>{employee.status}</Badge>
+                      <span className="text-muted-foreground">Since {formatDate(employee.hireDate)}</span>
                     </div>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(employee)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handlePrint(employee)}>
-                        <Printer className="mr-2 h-4 w-4" />
-                        Print
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleDelete(employee)} className="text-destructive">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Position: </span>
-                    {employee.position}
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Department: </span>
-                    {employee.department}
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Branch: </span>
-                    {employee.branch}
-                  </div>
-                  <div className="flex items-center justify-between pt-2">
-                    <Badge variant={employee.status === "active" ? "default" : "secondary"}>{employee.status}</Badge>
-                    <span className="text-muted-foreground">Since {formatDate(employee.hireDate)}</span>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </Card>
       </div>
 
       <CrudModal
-        open={isAddModalOpen}
-        onOpenChange={setIsAddModalOpen}
-        title="Add New Employee"
-        description="Register a new employee"
-        onSubmit={handleSubmitAdd}
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        title="Add/Edit Employee"
+        description="Register or update an employee"
+        onSubmit={currentEmployee ? handleSubmitEdit : handleSubmitAdd}
         isLoading={isLoading}
-        submitLabel="Add Employee"
+        submitLabel={currentEmployee ? "Save Changes" : "Add Employee"}
         size="xl"
       >
         <div className="grid gap-4">
@@ -423,182 +502,27 @@ export default function EmployeesPage() {
       </CrudModal>
 
       {currentEmployee && (
-        <CrudModal
-          open={isEditModalOpen}
-          onOpenChange={setIsEditModalOpen}
-          title="Edit Employee"
-          description="Update employee information"
-          onSubmit={handleSubmitEdit}
-          isLoading={isLoading}
-          submitLabel="Save Changes"
-          size="xl"
-        >
-          <Tabs defaultValue="general" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="general">General</TabsTrigger>
-              <TabsTrigger value="attachments">Attachments</TabsTrigger>
-            </TabsList>
-            <TabsContent value="general" className="space-y-4 mt-4">
-              <FormFieldWrapper label="Full Name" required>
-                <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-              </FormFieldWrapper>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <FormFieldWrapper label="Email" required>
-                  <Input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  />
-                </FormFieldWrapper>
-                <FormFieldWrapper label="Phone">
-                  <Input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
-                </FormFieldWrapper>
-              </div>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <FormFieldWrapper label="Position">
-                  <Input
-                    value={formData.position}
-                    onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                  />
-                </FormFieldWrapper>
-                <FormFieldWrapper label="Department">
-                  <Select
-                    value={formData.department}
-                    onValueChange={(value) => setFormData({ ...formData, department: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="IT">IT</SelectItem>
-                      <SelectItem value="Operations">Operations</SelectItem>
-                      <SelectItem value="Maintenance">Maintenance</SelectItem>
-                      <SelectItem value="HR">HR</SelectItem>
-                      <SelectItem value="Finance">Finance</SelectItem>
-                      <SelectItem value="Administration">Administration</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormFieldWrapper>
-              </div>
-              <div className="grid sm:grid-cols-3 gap-4">
-                <FormFieldWrapper label="Branch">
-                  <Select
-                    value={formData.branch}
-                    onValueChange={(value) => setFormData({ ...formData, branch: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Main Office">Main Office</SelectItem>
-                      <SelectItem value="Site A">Site A</SelectItem>
-                      <SelectItem value="Site B">Site B</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormFieldWrapper>
-                <FormFieldWrapper label="Hire Date">
-                  <Input
-                    type="date"
-                    value={formData.hireDate}
-                    onChange={(e) => setFormData({ ...formData, hireDate: e.target.value })}
-                  />
-                </FormFieldWrapper>
-                <FormFieldWrapper label="Salary">
-                  <Input
-                    type="number"
-                    value={formData.salary}
-                    onChange={(e) => setFormData({ ...formData, salary: Number(e.target.value) })}
-                  />
-                </FormFieldWrapper>
-              </div>
-            </TabsContent>
-            <TabsContent value="attachments" className="mt-4">
-              <AttachmentUploader
-                attachments={currentEmployee.attachments || []}
-                onUpload={(files) => handleUploadAttachment(currentEmployee.id, files)}
-                onDelete={(id) => handleDeleteAttachment(currentEmployee.id, id)}
-              />
-            </TabsContent>
-          </Tabs>
-        </CrudModal>
-      )}
-
-      {currentEmployee && (
-        <CrudModal
-          open={isPrintModalOpen}
-          onOpenChange={setIsPrintModalOpen}
-          title="Print Employee Report"
-          onSubmit={() => setIsPrintModalOpen(false)}
-          submitLabel="Close"
-          size="xl"
-        >
-          <PrintTemplate
-            title={`Employee: ${currentEmployee.name}`}
-            headerContent={
-              <div>
-                <div className="text-2xl font-bold">TWIST ERP</div>
-                <div className="text-lg">Employee Report</div>
-                <div className="text-sm text-gray-600">Generated: {formatDateTime(new Date())}</div>
-              </div>
-            }
-            footerContent={
-              <div className="flex justify-between items-center text-xs">
-                <div>TWIST ERP System - HR Management</div>
-                <div>Page 1 of 1</div>
-              </div>
-            }
-          >
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-sm font-medium text-gray-600">Employee ID</div>
-                  <div className="text-base">{currentEmployee.employeeId}</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-600">Full Name</div>
-                  <div className="text-base">{currentEmployee.name}</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-600">Email</div>
-                  <div className="text-base">{currentEmployee.email}</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-600">Phone</div>
-                  <div className="text-base">{currentEmployee.phone}</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-600">Position</div>
-                  <div className="text-base">{currentEmployee.position}</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-600">Department</div>
-                  <div className="text-base">{currentEmployee.department}</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-600">Branch</div>
-                  <div className="text-base">{currentEmployee.branch}</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-600">Status</div>
-                  <div className="text-base capitalize">{currentEmployee.status}</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-600">Hire Date</div>
-                  <div className="text-base">{formatDate(currentEmployee.hireDate)}</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-600">Salary</div>
-                  <div className="text-base">${currentEmployee.salary.toLocaleString()}</div>
-                </div>
-              </div>
-            </div>
-          </PrintTemplate>
-        </CrudModal>
+        <Tabs defaultValue="general" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="attachments">Attachments</TabsTrigger>
+          </TabsList>
+          <TabsContent value="general" className="space-y-4 mt-4">
+            {/* General form fields */}
+          </TabsContent>
+          <TabsContent value="attachments" className="mt-4">
+            <AttachmentUploader
+              attachments={currentEmployee.attachments || []}
+              onUpload={(files) => handleUploadAttachment(currentEmployee.id, files)}
+              onDelete={(id) => handleDeleteAttachment(currentEmployee.id, id)}
+            />
+          </TabsContent>
+        </Tabs>
       )}
 
       <DeleteDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
         onConfirm={handleConfirmDelete}
         title="Delete Employee"
         description={`Are you sure you want to delete ${currentEmployee?.name}? This action cannot be undone.`}

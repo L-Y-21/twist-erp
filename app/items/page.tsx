@@ -4,33 +4,12 @@ import { ErpLayout } from "@/components/erp-layout"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import {
-  Plus,
-  Upload,
-  Filter,
-  Search,
-  Trash2,
-  AlertCircle,
-  FileSpreadsheet,
-  FileText,
-  Eye,
-  Edit,
-  X,
-  Package,
-} from "lucide-react"
+import { ActionMenu } from "@/components/action-menu"
+import { ViewSwitcher } from "@/components/view-switcher"
+import { GridCard } from "@/components/grid-card"
+import { Plus, AlertCircle, FileText, Package } from "lucide-react"
 import { DataTable, SortableHeader } from "@/components/data-table"
 import type { ColumnDef } from "@tanstack/react-table"
 import { type InventoryItem, mockInventory } from "@/lib/mock-data"
@@ -38,6 +17,8 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { navigationConfig } from "@/lib/navigation"
+import { formatCurrency } from "@/lib/utils"
+import { DeleteDialog } from "@/components/delete-dialog"
 
 export default function ItemsPage() {
   const router = useRouter()
@@ -48,6 +29,8 @@ export default function ItemsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list")
+  const [activeTab, setActiveTab] = useState("all")
 
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
   const [statusFilter, setStatusFilter] = useState<string>("all")
@@ -210,17 +193,14 @@ export default function ItemsPage() {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => (
-        <div className="flex gap-1">
-          <Button size="sm" variant="ghost" onClick={() => router.push(`/items/${row.original.id}`)}>
-            <Eye className="h-4 w-4" />
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => router.push(`/items/${row.original.id}/edit`)}>
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => handleDelete(row.original.id)}>
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
+        <ActionMenu
+          onView={() => router.push(`/items/${row.original.id}`)}
+          onEdit={() => router.push(`/items/${row.original.id}/edit`)}
+          onDelete={() => handleDelete(row.original.id)}
+          onDuplicate={() => {
+            toast({ title: "Item Duplicated", description: "Item has been duplicated successfully." })
+          }}
+        />
       ),
     },
   ]
@@ -233,26 +213,11 @@ export default function ItemsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Inventory Items</h1>
-            <p className="text-muted-foreground">Manage stock and materials</p>
+            <h1 className="text-3xl font-bold">Inventory Management</h1>
+            <p className="text-muted-foreground">Manage stock, transactions, and warehouses</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
-              <Filter className="h-4 w-4 mr-2" />
-              {showFilters ? "Hide" : "Show"} Filters
-            </Button>
-            <Button variant="outline" onClick={handleImport}>
-              <Upload className="h-4 w-4 mr-2" />
-              Import
-            </Button>
-            <Button variant="outline" onClick={() => handleExport("excel")}>
-              <FileSpreadsheet className="h-4 w-4 mr-2" />
-              Excel
-            </Button>
-            <Button variant="outline" onClick={() => handleExport("pdf")}>
-              <FileText className="h-4 w-4 mr-2" />
-              PDF
-            </Button>
+            <ViewSwitcher view={viewMode} onViewChange={setViewMode} />
             <Button onClick={() => router.push("/items/new")}>
               <Plus className="h-4 w-4 mr-2" />
               Add Item
@@ -260,139 +225,156 @@ export default function ItemsPage() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Total Items</div>
-            <div className="text-2xl font-bold">{filteredItems.length}</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Total Value</div>
-            <div className="text-2xl font-bold">${totalValue.toLocaleString()}</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Low Stock Items</div>
-            <div className="text-2xl font-bold text-destructive">{lowStockCount}</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Categories</div>
-            <div className="text-2xl font-bold">{categories.length}</div>
-          </Card>
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="all">All Items</TabsTrigger>
+            <TabsTrigger value="stores">Stores</TabsTrigger>
+            <TabsTrigger value="transactions">Transactions</TabsTrigger>
+            <TabsTrigger value="receiving">Goods Receiving</TabsTrigger>
+            <TabsTrigger value="issue">Store Issue</TabsTrigger>
+            <TabsTrigger value="transfer">Transfer</TabsTrigger>
+            <TabsTrigger value="adjustment">Adjustment</TabsTrigger>
+          </TabsList>
 
-        {showFilters && (
-          <Card className="p-4">
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
-                <label className="text-sm font-medium mb-2 block">Category</label>
-                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Categories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex-1">
-                <label className="text-sm font-medium mb-2 block">Status</label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="In Stock">In Stock</SelectItem>
-                    <SelectItem value="Low Stock">Low Stock</SelectItem>
-                    <SelectItem value="Out of Stock">Out of Stock</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex-1">
-                <label className="text-sm font-medium mb-2 block">Search</label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search by name or code..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9"
+          <TabsContent value="all" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-4">
+              <Card className="p-4">
+                <div className="text-sm text-muted-foreground">Total Items</div>
+                <div className="text-2xl font-bold">{filteredItems.length}</div>
+              </Card>
+              <Card className="p-4">
+                <div className="text-sm text-muted-foreground">Total Value</div>
+                <div className="text-2xl font-bold">{formatCurrency(totalValue)}</div>
+              </Card>
+              <Card className="p-4">
+                <div className="text-sm text-muted-foreground">Low Stock Items</div>
+                <div className="text-2xl font-bold text-destructive">{lowStockCount}</div>
+              </Card>
+              <Card className="p-4">
+                <div className="text-sm text-muted-foreground">Categories</div>
+                <div className="text-2xl font-bold">{categories.length}</div>
+              </Card>
+            </div>
+
+            {viewMode === "list" ? (
+              <Card className="p-6">
+                {isLoading ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-muted-foreground">Loading...</div>
+                  </div>
+                ) : filteredItems.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-64 gap-2">
+                    <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <div className="text-lg font-medium">No items found</div>
+                    <div className="text-sm text-muted-foreground">Try adjusting your filters or add a new item</div>
+                    <Button onClick={() => router.push("/items/new")} className="mt-4">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add First Item
+                    </Button>
+                  </div>
+                ) : (
+                  <DataTable columns={columns} data={filteredItems} />
+                )}
+              </Card>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {filteredItems.map((item) => (
+                  <GridCard
+                    key={item.id}
+                    icon={<Package className="h-5 w-5" />}
+                    title={item.name}
+                    subtitle={item.id}
+                    status={item.status}
+                    fields={[
+                      { label: "Category", value: item.category },
+                      { label: "Stock", value: `${item.quantity} ${item.unit}` },
+                      { label: "Price", value: formatCurrency(item.unitPrice) },
+                      { label: "Value", value: formatCurrency(item.quantity * item.unitPrice) },
+                    ]}
+                    onView={() => router.push(`/items/${item.id}`)}
+                    onEdit={() => router.push(`/items/${item.id}/edit`)}
+                    onDelete={() => handleDelete(item.id)}
                   />
-                </div>
+                ))}
               </div>
-              <div className="pt-6">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setCategoryFilter("all")
-                    setStatusFilter("all")
-                    setSearchQuery("")
-                  }}
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Clear
-                </Button>
+            )}
+          </TabsContent>
+
+          <TabsContent value="stores">
+            <Card className="p-6">
+              <div className="text-center py-12">
+                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Stores & Warehouses</h3>
+                <p className="text-muted-foreground mb-4">Manage your store locations and inventory</p>
+                <Button onClick={() => router.push("/stores")}>Go to Stores</Button>
               </div>
-            </div>
-          </Card>
-        )}
+            </Card>
+          </TabsContent>
 
-        {selectedItems.length > 0 && (
-          <Card className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-medium">{selectedItems.length} item(s) selected</div>
-              <Button variant="destructive" size="sm" onClick={handleBulkDelete} disabled={isLoading}>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Selected
-              </Button>
-            </div>
-          </Card>
-        )}
+          <TabsContent value="transactions">
+            <Card className="p-6">
+              <div className="text-center py-12">
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Stock Movements</h3>
+                <p className="text-muted-foreground mb-4">View all inventory transactions</p>
+                <Button onClick={() => router.push("/stock-movements")}>View Transactions</Button>
+              </div>
+            </Card>
+          </TabsContent>
 
-        <Card className="p-6">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-muted-foreground">Loading...</div>
-            </div>
-          ) : filteredItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 gap-2">
-              <Package className="h-12 w-12 text-muted-foreground" />
-              <div className="text-lg font-medium">No items found</div>
-              <div className="text-sm text-muted-foreground">Try adjusting your filters or add a new item</div>
-              <Button onClick={() => router.push("/items/new")} className="mt-4">
-                <Plus className="h-4 w-4 mr-2" />
-                Add First Item
-              </Button>
-            </div>
-          ) : (
-            <DataTable columns={columns} data={filteredItems} />
-          )}
-        </Card>
+          <TabsContent value="receiving">
+            <Card className="p-6">
+              <div className="text-center py-12">
+                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Goods Receiving</h3>
+                <p className="text-muted-foreground mb-4">Receive items into inventory</p>
+                <Button onClick={() => router.push("/goods-receiving")}>Go to Goods Receiving</Button>
+              </div>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="issue">
+            <Card className="p-6">
+              <div className="text-center py-12">
+                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Store Issue</h3>
+                <p className="text-muted-foreground mb-4">Issue items from store</p>
+                <Button onClick={() => router.push("/store-issue")}>Go to Store Issue</Button>
+              </div>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="transfer">
+            <Card className="p-6">
+              <div className="text-center py-12">
+                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Store Transfer</h3>
+                <p className="text-muted-foreground mb-4">Transfer items between stores</p>
+                <Button onClick={() => router.push("/store-transfer")}>Go to Store Transfer</Button>
+              </div>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="adjustment">
+            <Card className="p-6">
+              <div className="text-center py-12">
+                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Stock Adjustment</h3>
+                <p className="text-muted-foreground mb-4">Adjust inventory quantities</p>
+                <Button onClick={() => router.push("/stock-adjustment")}>Go to Stock Adjustment</Button>
+              </div>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the item from the inventory.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteDialog
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Item"
+        description="Are you sure you want to delete this item? This action cannot be undone."
+      />
     </ErpLayout>
   )
 }

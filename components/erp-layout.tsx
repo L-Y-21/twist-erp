@@ -37,6 +37,7 @@ interface ErpLayoutProps {
 export function ErpLayout({ children, navigation }: ErpLayoutProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>(["Dashboard"])
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null)
   const [currentUser, setCurrentUser] = useState(getCurrentUser())
   const router = useRouter()
   const { toast } = useToast()
@@ -108,34 +109,10 @@ export function ErpLayout({ children, navigation }: ErpLayoutProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "bg-sidebar border-r border-sidebar-border transition-all duration-300",
+          "bg-sidebar border-r border-sidebar-border transition-all duration-300 flex flex-col",
           sidebarCollapsed ? "w-16" : "w-64",
         )}
       >
-        <div className="flex h-16 items-center border-b border-sidebar-border px-4">
-          {!sidebarCollapsed && (
-            <div className="flex items-center gap-3">
-              <Image
-                src="/images/twist-logo.jpeg"
-                alt="TWIST ERP Logo"
-                width={32}
-                height={32}
-                className="object-contain"
-              />
-              <span className="text-sidebar-foreground font-bold text-lg">TWIST ERP</span>
-            </div>
-          )}
-          {sidebarCollapsed && (
-            <Image
-              src="/images/twist-logo.jpeg"
-              alt="TWIST ERP"
-              width={32}
-              height={32}
-              className="object-contain mx-auto"
-            />
-          )}
-        </div>
-
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
           {navigation.map((item) => (
@@ -145,9 +122,43 @@ export function ErpLayout({ children, navigation }: ErpLayoutProps) {
               expanded={expandedItems.includes(item.title)}
               onToggle={toggleItem}
               collapsed={sidebarCollapsed}
+              activeTooltip={activeTooltip}
+              setActiveTooltip={setActiveTooltip}
             />
           ))}
         </nav>
+
+        <div className="border-t border-sidebar-border p-3 bg-gradient-to-br from-primary/5 to-primary/10">
+          {!sidebarCollapsed ? (
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/20 blur-md rounded-full" />
+                <Image
+                  src="/images/twist-logo.jpeg"
+                  alt="TWIST ERP Logo"
+                  width={40}
+                  height={40}
+                  className="object-contain relative z-10 drop-shadow-lg"
+                />
+              </div>
+              <div>
+                <span className="text-sidebar-foreground font-bold text-sm block">TWIST ERP</span>
+                <span className="text-xs text-muted-foreground">v1.0.0</span>
+              </div>
+            </div>
+          ) : (
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 blur-md rounded-full" />
+              <Image
+                src="/images/twist-logo.jpeg"
+                alt="TWIST ERP"
+                width={32}
+                height={32}
+                className="object-contain relative z-10 drop-shadow-lg mx-auto"
+              />
+            </div>
+          )}
+        </div>
 
         {/* Collapse Toggle */}
         <div className="border-t border-sidebar-border p-3">
@@ -278,15 +289,36 @@ function NavItemComponent({
   onToggle,
   collapsed,
   depth = 0,
+  activeTooltip,
+  setActiveTooltip,
 }: {
   item: NavItem
   expanded: boolean
   onToggle: (title: string) => void
   collapsed: boolean
   depth?: number
+  activeTooltip: string | null
+  setActiveTooltip: (title: string | null) => void
 }) {
   const hasChildren = item.children && item.children.length > 0
-  const [showTooltip, setShowTooltip] = useState(false)
+  const showTooltip = activeTooltip === item.title
+  const router = useRouter()
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (collapsed) {
+      if (hasChildren) {
+        setActiveTooltip(showTooltip ? null : item.title)
+        e.preventDefault()
+        e.stopPropagation()
+      } else if (item.href) {
+        router.push(item.href)
+      }
+    } else {
+      if (hasChildren) {
+        onToggle(item.title)
+      }
+    }
+  }
 
   const content = (
     <>
@@ -300,6 +332,44 @@ function NavItemComponent({
     </>
   )
 
+  const renderTooltip = () => {
+    if (!collapsed || !showTooltip) return null
+
+    return (
+      <div
+        className="fixed left-[72px] px-4 py-3 bg-popover text-popover-foreground text-sm rounded-lg shadow-xl border border-border z-[100] whitespace-nowrap min-w-[200px] max-w-[280px]"
+        onMouseEnter={() => setActiveTooltip(item.title)}
+        onMouseLeave={() => setActiveTooltip(null)}
+      >
+        <div className="font-semibold mb-2 text-base">{item.title}</div>
+        {hasChildren && item.children && (
+          <div className="space-y-2 text-sm">
+            {item.children.map((child) => (
+              <div key={child.title}>
+                {child.href ? (
+                  <Link
+                    href={child.href}
+                    className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent/20 transition-colors text-muted-foreground hover:text-foreground"
+                    onClick={() => setActiveTooltip(null)}
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                    {child.title}
+                  </Link>
+                ) : (
+                  <div className="flex items-center gap-2 px-2 py-1.5 text-muted-foreground">
+                    <span className="h-1.5 w-1.5 rounded-full bg-muted" />
+                    {child.title}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {!hasChildren && item.href && <div className="text-xs text-muted-foreground mt-1">Click to open</div>}
+      </div>
+    )
+  }
+
   return (
     <div className="relative">
       {item.href && !hasChildren ? (
@@ -310,59 +380,29 @@ function NavItemComponent({
             depth > 0 && "pl-8",
             collapsed && "justify-center",
           )}
-          onMouseEnter={() => collapsed && setShowTooltip(true)}
-          onMouseLeave={() => setShowTooltip(false)}
+          onMouseEnter={() => collapsed && setActiveTooltip(item.title)}
+          onMouseLeave={() => collapsed && setActiveTooltip(null)}
         >
           {content}
-          {collapsed && showTooltip && (
-            <div className="absolute left-full ml-2 px-3 py-2 bg-popover text-popover-foreground text-sm rounded-lg shadow-lg border z-50 whitespace-nowrap min-w-[160px]">
-              <div className="font-semibold mb-1">{item.title}</div>
-              {hasChildren && (
-                <div className="space-y-1 text-xs text-muted-foreground">
-                  {item.children?.map((child) => (
-                    <div key={child.title}>• {child.title}</div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </Link>
       ) : (
-        <>
-          <button
-            onClick={() => hasChildren && onToggle(item.title)}
-            className={cn(
-              "w-full flex items-center gap-2 px-3 py-2 rounded text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors relative",
-              depth > 0 && "pl-8",
-              collapsed && "justify-center",
-            )}
-            onMouseEnter={() => collapsed && setShowTooltip(true)}
-            onMouseLeave={() => setShowTooltip(false)}
-          >
-            {content}
-            {collapsed && showTooltip && (
-              <div className="absolute left-full ml-2 px-3 py-2 bg-popover text-popover-foreground text-sm rounded-lg shadow-lg border z-50 whitespace-nowrap min-w-[160px]">
-                <div className="font-semibold mb-1">{item.title}</div>
-                {hasChildren && (
-                  <div className="space-y-1 text-xs text-muted-foreground pl-2 border-l-2 border-primary/30 ml-1">
-                    {item.children?.map((child) => (
-                      <div key={child.title} className="py-0.5">
-                        {child.href ? (
-                          <Link href={child.href} className="hover:text-foreground transition-colors">
-                            {child.title}
-                          </Link>
-                        ) : (
-                          child.title
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </button>
-        </>
+        <button
+          onClick={handleClick}
+          className={cn(
+            "w-full flex items-center gap-2 px-3 py-2 rounded text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors relative",
+            depth > 0 && "pl-8",
+            collapsed && "justify-center",
+            showTooltip && collapsed && "bg-sidebar-accent",
+          )}
+          onMouseEnter={() => collapsed && setActiveTooltip(item.title)}
+          onMouseLeave={() => collapsed && !hasChildren && setActiveTooltip(null)}
+        >
+          {content}
+        </button>
       )}
+
+      {renderTooltip()}
+
       {!collapsed && hasChildren && expanded && (
         <div className="mt-1 space-y-1">
           {item.children?.map((child) => (
@@ -373,6 +413,8 @@ function NavItemComponent({
               onToggle={onToggle}
               collapsed={collapsed}
               depth={depth + 1}
+              activeTooltip={activeTooltip}
+              setActiveTooltip={setActiveTooltip}
             />
           ))}
         </div>

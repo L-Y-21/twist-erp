@@ -126,6 +126,18 @@
   }
 }
 
+/* Added styles for interactive sidebar tooltips */
+.sidebar-tooltip-enter {
+  opacity: 0;
+  transform: translateX(-8px);
+}
+
+.sidebar-tooltip-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 200ms, transform 200ms;
+}
+
 /* Added print styles for vouchers and documents */
 @media print {
   @page {

@@ -56,20 +56,31 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5">
-      <Card className="w-full max-w-md p-8 space-y-6">
-        <div className="text-center space-y-2">
-          <div className="flex justify-center mb-4">
-            <Image
-              src="/images/twist-logo.jpeg"
-              alt="TWIST ERP Logo"
-              width={120}
-              height={120}
-              className="object-contain"
-            />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 relative overflow-hidden">
+      <div className="absolute inset-0 bg-grid-white/5 [mask-image:radial-gradient(white,transparent_70%)]" />
+
+      <Card className="w-full max-w-md p-8 space-y-6 relative z-10 shadow-2xl">
+        <div className="text-center space-y-4">
+          <div className="flex justify-center mb-6">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/30 blur-2xl rounded-full scale-150" />
+              <div className="relative bg-gradient-to-br from-primary/10 to-accent/10 p-6 rounded-2xl">
+                <Image
+                  src="/images/twist-logo.jpeg"
+                  alt="TWIST ERP Logo"
+                  width={100}
+                  height={100}
+                  className="object-contain drop-shadow-2xl"
+                />
+              </div>
+            </div>
           </div>
-          <h1 className="text-3xl font-bold">TWIST ERP</h1>
-          <p className="text-muted-foreground">Construction Management System</p>
+          <div>
+            <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              TWIST ERP
+            </h1>
+            <p className="text-muted-foreground text-sm mt-2 font-medium">Construction Management System</p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -123,14 +134,15 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <div className="text-center text-sm text-muted-foreground">
-          <p>Demo Credentials:</p>
-          <p className="font-mono">
-            Username: <strong>admin</strong> | Password: <strong>123456</strong>
+        <div className="text-center text-sm text-muted-foreground bg-muted/30 rounded-lg p-3">
+          <p className="font-semibold mb-1">Demo Credentials:</p>
+          <p className="font-mono text-xs">
+            Username: <strong className="text-primary">admin</strong> | Password:{" "}
+            <strong className="text-primary">123456</strong>
           </p>
         </div>
 
-        <div className="text-center text-xs text-muted-foreground">
+        <div className="text-center text-xs text-muted-foreground pt-2">
           <p>© 2025 TWIST ERP. All rights reserved.</p>
         </div>
       </Card>
