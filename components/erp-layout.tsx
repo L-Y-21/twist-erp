@@ -6,7 +6,6 @@ import { useState, useEffect } from "react"
 import { Bell, ChevronDown, ChevronRight, Globe, Search, Settings, User, LogOut, Menu } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -105,11 +104,11 @@ export function ErpLayout({ children, navigation }: ErpLayoutProps) {
   }
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex min-h-screen bg-background">
       {/* Sidebar */}
       <aside
         className={cn(
-          "bg-sidebar border-r border-sidebar-border transition-all duration-300 flex flex-col",
+          "bg-sidebar border-r border-sidebar-border transition-all duration-300 flex flex-col sticky top-0 h-screen",
           sidebarCollapsed ? "w-16" : "w-64",
         )}
       >
@@ -127,38 +126,6 @@ export function ErpLayout({ children, navigation }: ErpLayoutProps) {
             />
           ))}
         </nav>
-
-        <div className="border-t border-sidebar-border p-3 bg-gradient-to-br from-primary/5 to-primary/10">
-          {!sidebarCollapsed ? (
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary/20 blur-md rounded-full" />
-                <Image
-                  src="/images/twist-logo.jpeg"
-                  alt="TWIST ERP Logo"
-                  width={40}
-                  height={40}
-                  className="object-contain relative z-10 drop-shadow-lg"
-                />
-              </div>
-              <div>
-                <span className="text-sidebar-foreground font-bold text-sm block">TWIST ERP</span>
-                <span className="text-xs text-muted-foreground">v1.0.0</span>
-              </div>
-            </div>
-          ) : (
-            <div className="relative">
-              <div className="absolute inset-0 bg-primary/20 blur-md rounded-full" />
-              <Image
-                src="/images/twist-logo.jpeg"
-                alt="TWIST ERP"
-                width={32}
-                height={32}
-                className="object-contain relative z-10 drop-shadow-lg mx-auto"
-              />
-            </div>
-          )}
-        </div>
 
         {/* Collapse Toggle */}
         <div className="border-t border-sidebar-border p-3">
@@ -180,9 +147,9 @@ export function ErpLayout({ children, navigation }: ErpLayoutProps) {
       </aside>
 
       {/* Main Content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col">
         {/* Header */}
-        <header className="flex h-16 items-center border-b bg-card px-6 gap-4 no-print">
+        <header className="flex h-16 items-center border-b bg-card px-6 gap-4 no-print sticky top-0 z-10">
           {/* Global Search */}
           <div className="flex-1 max-w-md relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

@@ -1,144 +1,167 @@
 "use client"
 
+import type React from "react"
+
 import { ErpLayout } from "@/components/erp-layout"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Checkbox } from "@/components/ui/checkbox"
-import { ActionMenu } from "@/components/action-menu"
 import { ViewSwitcher } from "@/components/view-switcher"
-import { GridCard } from "@/components/grid-card"
-import { Plus, AlertCircle, FileText, Package } from "lucide-react"
 import { DataTable, SortableHeader } from "@/components/data-table"
+import { Plus, Package, Search, Edit, Trash2 } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
-import { type InventoryItem, mockInventory } from "@/lib/mock-data"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { navigationConfig } from "@/lib/navigation"
-import { formatCurrency } from "@/lib/utils"
-import { DeleteDialog } from "@/components/delete-dialog"
+import { itemsApi, type Item } from "@/lib/api/items"
+import { categoriesApi } from "@/lib/api/categories"
+import { unitsApi } from "@/lib/api/units"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 
 export default function ItemsPage() {
   const router = useRouter()
   const { toast } = useToast()
 
-  const [items, setItems] = useState<InventoryItem[]>(mockInventory)
-  const [selectedItems, setSelectedItems] = useState<string[]>([])
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [itemToDelete, setItemToDelete] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [items, setItems] = useState<Item[]>([])
+  const [categories, setCategories] = useState([])
+  const [units, setUnits] = useState([])
+  const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<"list" | "grid">("list")
   const [activeTab, setActiveTab] = useState("all")
-
-  const [categoryFilter, setCategoryFilter] = useState<string>("all")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [showFilters, setShowFilters] = useState(false)
-
-  const categories = Array.from(new Set(items.map((item) => item.category)))
-
-  const filteredItems = items.filter((item) => {
-    const matchesCategory = categoryFilter === "all" || item.category === categoryFilter
-    const matchesStatus = statusFilter === "all" || item.status === statusFilter
-    const matchesSearch =
-      searchQuery === "" ||
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.id.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesCategory && matchesStatus && matchesSearch
+  const [searchTerm, setSearchTerm] = useState("")
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState<Item | null>(null)
+  const [formData, setFormData] = useState({
+    name: "",
+    code: "",
+    description: "",
+    categoryId: "",
+    unitId: "",
+    reorderLevel: 10,
+    minStockLevel: 5,
+    maxStockLevel: 100,
+    isActive: true,
   })
 
-  const handleDelete = (id: string) => {
-    setItemToDelete(id)
-    setDeleteDialogOpen(true)
-  }
+  useEffect(() => {
+    loadData()
+  }, [])
 
-  const confirmDelete = () => {
-    if (itemToDelete) {
-      setIsLoading(true)
-      setTimeout(() => {
-        setItems(items.filter((item) => item.id !== itemToDelete))
-        setIsLoading(false)
-        setDeleteDialogOpen(false)
-        setItemToDelete(null)
-        toast({
-          title: "Item Deleted",
-          description: "The item has been successfully deleted.",
-        })
-      }, 500)
+  const loadData = async () => {
+    try {
+      setLoading(true)
+      const [itemsData, categoriesData, unitsData] = await Promise.all([
+        itemsApi.getAll(),
+        categoriesApi.getAll(),
+        unitsApi.getAll(),
+      ])
+      setItems(itemsData)
+      setCategories(categoriesData)
+      setUnits(unitsData)
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load data",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleBulkDelete = () => {
-    if (selectedItems.length === 0) return
-    setIsLoading(true)
-    setTimeout(() => {
-      setItems(items.filter((item) => !selectedItems.includes(item.id)))
-      setSelectedItems([])
-      setIsLoading(false)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      if (editingItem) {
+        await itemsApi.update(editingItem.id, formData)
+        toast({ title: "Success", description: "Item updated successfully" })
+      } else {
+        await itemsApi.create(formData)
+        toast({ title: "Success", description: "Item created successfully" })
+      }
+      setIsDialogOpen(false)
+      resetForm()
+      loadData()
+    } catch (error) {
       toast({
-        title: "Items Deleted",
-        description: `${selectedItems.length} item(s) have been deleted.`,
+        title: "Error",
+        description: "Failed to save item",
+        variant: "destructive",
       })
-    }, 500)
+    }
   }
 
-  const handleExport = (format: "excel" | "pdf") => {
-    setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this item?")) return
+    try {
+      await itemsApi.delete(id)
+      toast({ title: "Success", description: "Item deleted successfully" })
+      loadData()
+    } catch (error) {
       toast({
-        title: "Export Successful",
-        description: `Items exported as ${format.toUpperCase()}.`,
+        title: "Error",
+        description: "Failed to delete item",
+        variant: "destructive",
       })
-    }, 1000)
+    }
   }
 
-  const handleImport = () => {
-    setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
-      toast({
-        title: "Import Successful",
-        description: "Items have been imported successfully.",
-      })
-    }, 1000)
+  const handleEdit = (item: Item) => {
+    setEditingItem(item)
+    setFormData({
+      name: item.name,
+      code: item.code,
+      description: item.description || "",
+      categoryId: item.categoryId,
+      unitId: item.unitId,
+      reorderLevel: item.reorderLevel,
+      minStockLevel: item.minStockLevel,
+      maxStockLevel: item.maxStockLevel,
+      isActive: item.isActive,
+    })
+    setIsDialogOpen(true)
   }
 
-  const columns: ColumnDef<InventoryItem>[] = [
+  const resetForm = () => {
+    setEditingItem(null)
+    setFormData({
+      name: "",
+      code: "",
+      description: "",
+      categoryId: "",
+      unitId: "",
+      reorderLevel: 10,
+      minStockLevel: 5,
+      maxStockLevel: 100,
+      isActive: true,
+    })
+  }
+
+  const filteredItems = items.filter(
+    (item) =>
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.code.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
+
+  const columns: ColumnDef<Item>[] = [
     {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(value) => {
-            table.toggleAllPageRowsSelected(!!value)
-            if (value) {
-              setSelectedItems(filteredItems.map((item) => item.id))
-            } else {
-              setSelectedItems([])
-            }
-          }}
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={selectedItems.includes(row.original.id)}
-          onCheckedChange={(value) => {
-            if (value) {
-              setSelectedItems([...selectedItems, row.original.id])
-            } else {
-              setSelectedItems(selectedItems.filter((id) => id !== row.original.id))
-            }
-          }}
-        />
-      ),
-    },
-    {
-      accessorKey: "id",
+      accessorKey: "code",
       header: ({ column }) => <SortableHeader column={column}>Item Code</SortableHeader>,
-      cell: ({ row }) => <span className="font-medium">{row.getValue("id")}</span>,
+      cell: ({ row }) => <span className="font-medium">{row.getValue("code")}</span>,
     },
     {
       accessorKey: "name",
@@ -146,67 +169,49 @@ export default function ItemsPage() {
       cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>,
     },
     {
-      accessorKey: "category",
+      accessorKey: "categoryId",
       header: "Category",
-      cell: ({ row }) => <Badge variant="outline">{row.getValue("category")}</Badge>,
+      cell: ({ row }) => {
+        const category = categories.find((c) => c.id === row.getValue("categoryId"))
+        return <Badge variant="outline">{category?.name || "N/A"}</Badge>
+      },
     },
     {
-      accessorKey: "unit",
+      accessorKey: "unitId",
       header: "Unit",
-      cell: ({ row }) => <span className="text-muted-foreground">{row.getValue("unit")}</span>,
-    },
-    {
-      accessorKey: "unitPrice",
-      header: ({ column }) => <SortableHeader column={column}>Price</SortableHeader>,
       cell: ({ row }) => {
-        const price = row.getValue("unitPrice") as number
-        return <span>${price.toFixed(2)}</span>
+        const unit = units.find((u) => u.id === row.getValue("unitId"))
+        return <span className="text-muted-foreground">{unit?.abbreviation || "N/A"}</span>
       },
     },
     {
-      accessorKey: "quantity",
-      header: ({ column }) => <SortableHeader column={column}>Stock</SortableHeader>,
-      cell: ({ row }) => {
-        const quantity = row.getValue("quantity") as number
-        const item = row.original
-        return (
-          <div className="flex items-center gap-2">
-            <span>{quantity}</span>
-            {quantity <= item.reorderLevel && <AlertCircle className="h-4 w-4 text-destructive" />}
-          </div>
-        )
-      },
+      accessorKey: "reorderLevel",
+      header: "Reorder Level",
+      cell: ({ row }) => <span>{row.getValue("reorderLevel")}</span>,
     },
     {
-      accessorKey: "status",
+      accessorKey: "isActive",
       header: "Status",
       cell: ({ row }) => {
-        const status = row.getValue("status") as string
-        return (
-          <Badge variant={status === "In Stock" ? "default" : status === "Low Stock" ? "destructive" : "outline"}>
-            {status}
-          </Badge>
-        )
+        const isActive = row.getValue("isActive")
+        return <Badge variant={isActive ? "default" : "secondary"}>{isActive ? "Active" : "Inactive"}</Badge>
       },
     },
     {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => (
-        <ActionMenu
-          onView={() => router.push(`/items/${row.original.id}`)}
-          onEdit={() => router.push(`/items/${row.original.id}/edit`)}
-          onDelete={() => handleDelete(row.original.id)}
-          onDuplicate={() => {
-            toast({ title: "Item Duplicated", description: "Item has been duplicated successfully." })
-          }}
-        />
+        <div className="flex gap-1">
+          <Button size="sm" variant="ghost" onClick={() => handleEdit(row.original)}>
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => handleDelete(row.original.id)}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       ),
     },
   ]
-
-  const totalValue = filteredItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
-  const lowStockCount = filteredItems.filter((item) => item.status === "Low Stock").length
 
   return (
     <ErpLayout navigation={navigationConfig}>
@@ -218,10 +223,128 @@ export default function ItemsPage() {
           </div>
           <div className="flex gap-2">
             <ViewSwitcher view={viewMode} onViewChange={setViewMode} />
-            <Button onClick={() => router.push("/items/new")}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Item
-            </Button>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={resetForm}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Item
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <form onSubmit={handleSubmit}>
+                  <DialogHeader>
+                    <DialogTitle>{editingItem ? "Edit Item" : "Add New Item"}</DialogTitle>
+                    <DialogDescription>
+                      {editingItem ? "Update the item details below" : "Fill in the details to create a new item"}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="code">Item Code *</Label>
+                        <Input
+                          id="code"
+                          value={formData.code}
+                          onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Item Name *</Label>
+                        <Input
+                          id="name"
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea
+                        id="description"
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        rows={3}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="category">Category *</Label>
+                        <Select
+                          value={formData.categoryId}
+                          onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map((cat) => (
+                              <SelectItem key={cat.id} value={cat.id}>
+                                {cat.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="unit">Unit *</Label>
+                        <Select
+                          value={formData.unitId}
+                          onValueChange={(value) => setFormData({ ...formData, unitId: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select unit" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {units.map((unit) => (
+                              <SelectItem key={unit.id} value={unit.id}>
+                                {unit.name} ({unit.abbreviation})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="reorderLevel">Reorder Level</Label>
+                        <Input
+                          id="reorderLevel"
+                          type="number"
+                          value={formData.reorderLevel}
+                          onChange={(e) => setFormData({ ...formData, reorderLevel: Number(e.target.value) })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="minStock">Min Stock</Label>
+                        <Input
+                          id="minStock"
+                          type="number"
+                          value={formData.minStockLevel}
+                          onChange={(e) => setFormData({ ...formData, minStockLevel: Number(e.target.value) })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="maxStock">Max Stock</Label>
+                        <Input
+                          id="maxStock"
+                          type="number"
+                          value={formData.maxStockLevel}
+                          onChange={(e) => setFormData({ ...formData, maxStockLevel: Number(e.target.value) })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit">{editingItem ? "Update" : "Create"}</Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
@@ -230,10 +353,6 @@ export default function ItemsPage() {
             <TabsTrigger value="all">All Items</TabsTrigger>
             <TabsTrigger value="stores">Stores</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
-            <TabsTrigger value="receiving">Goods Receiving</TabsTrigger>
-            <TabsTrigger value="issue">Store Issue</TabsTrigger>
-            <TabsTrigger value="transfer">Transfer</TabsTrigger>
-            <TabsTrigger value="adjustment">Adjustment</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="space-y-4">
@@ -243,61 +362,94 @@ export default function ItemsPage() {
                 <div className="text-2xl font-bold">{filteredItems.length}</div>
               </Card>
               <Card className="p-4">
-                <div className="text-sm text-muted-foreground">Total Value</div>
-                <div className="text-2xl font-bold">{formatCurrency(totalValue)}</div>
-              </Card>
-              <Card className="p-4">
-                <div className="text-sm text-muted-foreground">Low Stock Items</div>
-                <div className="text-2xl font-bold text-destructive">{lowStockCount}</div>
+                <div className="text-sm text-muted-foreground">Active Items</div>
+                <div className="text-2xl font-bold">{filteredItems.filter((i) => i.isActive).length}</div>
               </Card>
               <Card className="p-4">
                 <div className="text-sm text-muted-foreground">Categories</div>
                 <div className="text-2xl font-bold">{categories.length}</div>
               </Card>
+              <Card className="p-4">
+                <div className="text-sm text-muted-foreground">Units</div>
+                <div className="text-2xl font-bold">{units.length}</div>
+              </Card>
             </div>
 
-            {viewMode === "list" ? (
-              <Card className="p-6">
-                {isLoading ? (
-                  <div className="flex items-center justify-center h-64">
-                    <div className="text-muted-foreground">Loading...</div>
-                  </div>
-                ) : filteredItems.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-64 gap-2">
-                    <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <div className="text-lg font-medium">No items found</div>
-                    <div className="text-sm text-muted-foreground">Try adjusting your filters or add a new item</div>
-                    <Button onClick={() => router.push("/items/new")} className="mt-4">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add First Item
-                    </Button>
-                  </div>
-                ) : (
-                  <DataTable columns={columns} data={filteredItems} />
-                )}
-              </Card>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredItems.map((item) => (
-                  <GridCard
-                    key={item.id}
-                    icon={<Package className="h-5 w-5" />}
-                    title={item.name}
-                    subtitle={item.id}
-                    status={item.status}
-                    fields={[
-                      { label: "Category", value: item.category },
-                      { label: "Stock", value: `${item.quantity} ${item.unit}` },
-                      { label: "Price", value: formatCurrency(item.unitPrice) },
-                      { label: "Value", value: formatCurrency(item.quantity * item.unitPrice) },
-                    ]}
-                    onView={() => router.push(`/items/${item.id}`)}
-                    onEdit={() => router.push(`/items/${item.id}/edit`)}
-                    onDelete={() => handleDelete(item.id)}
+            <Card className="p-6">
+              <div className="mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search items..."
+                    className="pl-9"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
-                ))}
+                </div>
               </div>
-            )}
+
+              {loading ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-muted-foreground">Loading...</div>
+                </div>
+              ) : filteredItems.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-64 gap-2">
+                  <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <div className="text-lg font-medium">No items found</div>
+                  <div className="text-sm text-muted-foreground">Try adjusting your filters or add a new item</div>
+                  <Button onClick={resetForm} className="mt-4">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add First Item
+                  </Button>
+                </div>
+              ) : viewMode === "list" ? (
+                <DataTable columns={columns} data={filteredItems} />
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredItems.map((item) => (
+                    <Card key={item.id} className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded bg-primary/10 flex items-center justify-center">
+                            <Package className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold">{item.name}</h3>
+                            <p className="text-sm text-muted-foreground">{item.code}</p>
+                          </div>
+                        </div>
+                        <Badge variant={item.isActive ? "default" : "secondary"}>
+                          {item.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </div>
+                      <div className="space-y-2 text-sm mb-4">
+                        <div>
+                          <span className="text-muted-foreground">Category: </span>
+                          {categories.find((c) => c.id === item.categoryId)?.name || "N/A"}
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Unit: </span>
+                          {units.find((u) => u.id === item.unitId)?.abbreviation || "N/A"}
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Reorder Level: </span>
+                          {item.reorderLevel}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => handleEdit(item)} className="flex-1">
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => handleDelete(item.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </Card>
           </TabsContent>
 
           <TabsContent value="stores">
@@ -314,67 +466,15 @@ export default function ItemsPage() {
           <TabsContent value="transactions">
             <Card className="p-6">
               <div className="text-center py-12">
-                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Stock Movements</h3>
                 <p className="text-muted-foreground mb-4">View all inventory transactions</p>
                 <Button onClick={() => router.push("/stock-movements")}>View Transactions</Button>
               </div>
             </Card>
           </TabsContent>
-
-          <TabsContent value="receiving">
-            <Card className="p-6">
-              <div className="text-center py-12">
-                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Goods Receiving</h3>
-                <p className="text-muted-foreground mb-4">Receive items into inventory</p>
-                <Button onClick={() => router.push("/goods-receiving")}>Go to Goods Receiving</Button>
-              </div>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="issue">
-            <Card className="p-6">
-              <div className="text-center py-12">
-                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Store Issue</h3>
-                <p className="text-muted-foreground mb-4">Issue items from store</p>
-                <Button onClick={() => router.push("/store-issue")}>Go to Store Issue</Button>
-              </div>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="transfer">
-            <Card className="p-6">
-              <div className="text-center py-12">
-                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Store Transfer</h3>
-                <p className="text-muted-foreground mb-4">Transfer items between stores</p>
-                <Button onClick={() => router.push("/store-transfer")}>Go to Store Transfer</Button>
-              </div>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="adjustment">
-            <Card className="p-6">
-              <div className="text-center py-12">
-                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Stock Adjustment</h3>
-                <p className="text-muted-foreground mb-4">Adjust inventory quantities</p>
-                <Button onClick={() => router.push("/stock-adjustment")}>Go to Stock Adjustment</Button>
-              </div>
-            </Card>
-          </TabsContent>
         </Tabs>
       </div>
-
-      <DeleteDialog
-        isOpen={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        onConfirm={confirmDelete}
-        title="Delete Item"
-        description="Are you sure you want to delete this item? This action cannot be undone."
-      />
     </ErpLayout>
   )
 }
