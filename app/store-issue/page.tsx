@@ -2,180 +2,164 @@
 
 import { ErpLayout } from "@/components/erp-layout"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-import { CrudModal } from "@/components/crud-modal"
-import { DeleteDialog } from "@/components/delete-dialog"
-import { ViewSwitcher } from "@/components/view-switcher"
-import { GridCard } from "@/components/grid-card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DataTable, SortableHeader } from "@/components/data-table"
-import { Plus, Package } from "lucide-react"
+import { FormDialog } from "@/components/form-dialog"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { navigationConfig } from "@/lib/navigation"
-import { formatCurrency } from "@/lib/utils"
-import { useRouter } from "next/navigation"
-import ActionMenu from "@/components/action-menu" // Import ActionMenu component
+import { DeleteDialog } from "@/components/delete-dialog"
+import { Plus, FileText, Calendar } from "lucide-react"
 
+// Mock Data for Store Issues
 interface StoreIssue {
   id: string
-  voucherNo: string
   date: string
-  issuedTo: string
+  requestedBy: string
   project: string
-  store: string
-  items: number
-  totalValue: number
-  issuedBy: string
-  status: "Draft" | "Issued" | "Approved"
+  status: "Draft" | "Approved" | "Issued" | "Complete"
+  itemsCount: number
 }
 
 const mockIssues: StoreIssue[] = [
-  {
-    id: "1",
-    voucherNo: "SI-2025-0001",
-    date: "2025-12-19",
-    issuedTo: "Tower Construction Site",
-    project: "Tower Project",
-    store: "Main Warehouse",
-    items: 8,
-    totalValue: 35000,
-    issuedBy: "Sarah Johnson",
-    status: "Approved",
-  },
-  {
-    id: "2",
-    voucherNo: "SI-2025-0002",
-    date: "2025-12-18",
-    issuedTo: "Bridge Maintenance Team",
-    project: "Bridge Repair",
-    store: "Site Store - Tower",
-    items: 5,
-    totalValue: 18500,
-    issuedBy: "Mike Wilson",
-    status: "Issued",
-  },
+  { id: "ISS-2025-001", date: "2025-12-20", requestedBy: "John Smith", project: "Downtown Tower", status: "Complete", itemsCount: 5 },
+  { id: "ISS-2025-002", date: "2025-12-21", requestedBy: "Mike Johnson", project: "Highway Extension", status: "Approved", itemsCount: 12 },
+  { id: "ISS-2025-003", date: "2025-12-21", requestedBy: "Sarah Connor", project: "HQ Renovation", status: "Draft", itemsCount: 3 },
 ]
 
 export default function StoreIssuePage() {
-  const { toast } = useToast()
   const router = useRouter()
+  const { toast } = useToast()
+
   const [issues, setIssues] = useState<StoreIssue[]>(mockIssues)
-  const [viewMode, setViewMode] = useState<"list" | "grid">("list")
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingIssue, setEditingIssue] = useState<StoreIssue | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogMode, setDialogMode] = useState<"create" | "edit">("create")
+  const [currentIssue, setCurrentIssue] = useState<StoreIssue | null>(null)
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [issueToDelete, setIssueToDelete] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleSave = (data: any) => {
-    if (editingIssue) {
-      setIssues(issues.map((i) => (i.id === editingIssue.id ? { ...i, ...data } : i)))
-      toast({ title: "Store Issue Updated", description: "Record has been updated successfully." })
-    } else {
-      const newIssue: StoreIssue = {
-        id: Date.now().toString(),
-        voucherNo: `SI-2025-${String(issues.length + 1).padStart(4, "0")}`,
-        ...data,
-      }
-      setIssues([...issues, newIssue])
-      toast({ title: "Store Issue Created", description: "New record has been created successfully." })
+  const [formData, setFormData] = useState<Partial<StoreIssue>>({})
+
+  const handleDelete = (issue: StoreIssue) => {
+    setIssueToDelete(issue.id)
+    setDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = () => {
+    if (issueToDelete) {
+      setIsLoading(true)
+      setTimeout(() => {
+        setIssues(issues.filter((i) => i.id !== issueToDelete))
+        setIsLoading(false)
+        setDeleteDialogOpen(false)
+        setIssueToDelete(null)
+        toast({
+          title: "Issue Deleted",
+          description: "The store issue has been successfully deleted.",
+        })
+      }, 500)
     }
-    setIsModalOpen(false)
-    setEditingIssue(null)
   }
 
   const handleEdit = (issue: StoreIssue) => {
-    setEditingIssue(issue)
-    setIsModalOpen(true)
+    setCurrentIssue(issue)
+    setFormData(issue)
+    setDialogMode("edit")
+    setDialogOpen(true)
   }
 
-  const handleDelete = (id: string) => {
-    setIssues(issues.filter((i) => i.id !== id))
-    toast({ title: "Record Deleted", description: "Store issue record has been deleted successfully." })
+  const handleCreate = () => {
+    setCurrentIssue(null)
+    setFormData({
+      id: `ISS-2025-00${Math.floor(Math.random() * 100) + 4}`,
+      date: new Date().toISOString().split('T')[0],
+      status: "Draft",
+      itemsCount: 0,
+    })
+    setDialogMode("create")
+    setDialogOpen(true)
+  }
+
+  const handleSave = () => {
+    if (!formData.project || !formData.requestedBy) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsLoading(true)
+    setTimeout(() => {
+      if (dialogMode === "create") {
+        setIssues([...issues, formData as StoreIssue])
+        toast({ title: "Issue Created", description: "New store issue created." })
+      } else {
+        setIssues(issues.map(i => i.id === currentIssue?.id ? (formData as StoreIssue) : i))
+        toast({ title: "Issue Updated", description: "Store issue details updated." })
+      }
+      setIsLoading(false)
+      setDialogOpen(false)
+    }, 500)
   }
 
   const columns: ColumnDef<StoreIssue>[] = [
     {
-      accessorKey: "voucherNo",
-      header: ({ column }) => <SortableHeader column={column}>Voucher #</SortableHeader>,
-      cell: ({ row }) => <span className="font-medium">{row.getValue("voucherNo")}</span>,
+      accessorKey: "id",
+      header: ({ column }) => <SortableHeader column={column}>Issue No.</SortableHeader>,
+      cell: ({ row }) => <span className="font-medium text-primary">{row.getValue("id")}</span>,
     },
     {
       accessorKey: "date",
       header: ({ column }) => <SortableHeader column={column}>Date</SortableHeader>,
-    },
-    {
-      accessorKey: "issuedTo",
-      header: "Issued To",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2 text-foreground/80">
+          <Calendar className="h-3 w-3" />
+          <span>{row.getValue("date")}</span>
+        </div>
+      ),
     },
     {
       accessorKey: "project",
       header: "Project",
+      cell: ({ row }) => <span className="font-medium text-foreground">{row.getValue("project")}</span>,
     },
     {
-      accessorKey: "store",
-      header: "Store",
+      accessorKey: "requestedBy",
+      header: "Requested By",
+      cell: ({ row }) => <span className="text-foreground">{row.getValue("requestedBy")}</span>,
     },
     {
-      accessorKey: "items",
+      accessorKey: "itemsCount",
       header: "Items",
-      cell: ({ row }) => <span>{row.getValue("items")} items</span>,
-    },
-    {
-      accessorKey: "totalValue",
-      header: "Total Value",
-      cell: ({ row }) => <span>{formatCurrency(row.getValue("totalValue"))}</span>,
-    },
-    {
-      accessorKey: "issuedBy",
-      header: "Issued By",
+      cell: ({ row }) => <span className="font-medium text-foreground">{row.getValue("itemsCount")}</span>,
     },
     {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => {
         const status = row.getValue("status") as string
+        const colorMap = {
+          "Complete": "text-emerald-700 bg-emerald-100",
+          "Issued": "text-blue-700 bg-blue-100",
+          "Approved": "text-purple-700 bg-purple-100",
+          "Draft": "text-slate-700 bg-slate-100"
+        }
         return (
-          <Badge variant={status === "Approved" ? "default" : status === "Issued" ? "secondary" : "outline"}>
+          <span className={`text-xs font-bold uppercase px-2 py-1 rounded ${colorMap[status as keyof typeof colorMap]}`}>
             {status}
-          </Badge>
+          </span>
         )
       },
-    },
-    {
-      id: "actions",
-      header: "Actions",
-      cell: ({ row }) => (
-        <ActionMenu
-          onView={() => router.push(`/store-issue/${row.original.id}`)}
-          onEdit={() => handleEdit(row.original)}
-          onDelete={() => {
-            setIssueToDelete(row.original.id)
-            setDeleteDialogOpen(true)
-          }}
-          onDownload={() => {
-            toast({ title: "Downloaded", description: "Voucher downloaded successfully." })
-          }}
-        />
-      ),
-    },
-  ]
-
-  const formFields = [
-    { name: "date", label: "Date", type: "date" as const, required: true },
-    { name: "issuedTo", label: "Issued To", type: "text" as const, required: true },
-    { name: "project", label: "Project", type: "text" as const, required: true },
-    { name: "store", label: "Store", type: "text" as const, required: true },
-    { name: "items", label: "Number of Items", type: "number" as const, required: true },
-    { name: "totalValue", label: "Total Value", type: "number" as const, required: true },
-    { name: "issuedBy", label: "Issued By", type: "text" as const, required: true },
-    {
-      name: "status",
-      label: "Status",
-      type: "select" as const,
-      options: ["Draft", "Issued", "Approved"],
-      required: true,
     },
   ]
 
@@ -184,93 +168,105 @@ export default function StoreIssuePage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Store Issue</h1>
-            <p className="text-muted-foreground">Issue items from store to projects or departments</p>
+            <h1 className="text-2xl font-bold tracking-tight">Store Issues</h1>
+            <p className="text-muted-foreground">Manage material issuance to projects</p>
           </div>
-          <div className="flex gap-2">
-            <ViewSwitcher view={viewMode} onViewChange={setViewMode} />
-            <Button onClick={() => setIsModalOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Issue
-            </Button>
-          </div>
+          <Button onClick={handleCreate} className="shadow-lg hover:shadow-xl transition-all">
+            <Plus className="h-4 w-4 mr-2" />
+            New Issue
+          </Button>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Total Issues</div>
-            <div className="text-2xl font-bold">{issues.length}</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Total Value</div>
-            <div className="text-2xl font-bold">{formatCurrency(issues.reduce((sum, i) => sum + i.totalValue, 0))}</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Pending Approval</div>
-            <div className="text-2xl font-bold">{issues.filter((i) => i.status === "Issued").length}</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Approved</div>
-            <div className="text-2xl font-bold text-green-600">
-              {issues.filter((i) => i.status === "Approved").length}
-            </div>
-          </Card>
-        </div>
-
-        {viewMode === "list" ? (
-          <Card className="p-6">
-            <DataTable columns={columns} data={issues} />
-          </Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {issues.map((issue) => (
-              <GridCard
-                key={issue.id}
-                icon={<Package className="h-5 w-5" />}
-                title={issue.voucherNo}
-                subtitle={issue.issuedTo}
-                status={issue.status}
-                fields={[
-                  { label: "Date", value: issue.date },
-                  { label: "Project", value: issue.project },
-                  { label: "Store", value: issue.store },
-                  { label: "Items", value: `${issue.items} items` },
-                  { label: "Value", value: formatCurrency(issue.totalValue) },
-                  { label: "Issued By", value: issue.issuedBy },
-                ]}
-                onView={() => router.push(`/store-issue/${issue.id}`)}
-                onEdit={() => handleEdit(issue)}
-                onDelete={() => {
-                  setIssueToDelete(issue.id)
-                  setDeleteDialogOpen(true)
-                }}
-              />
-            ))}
-          </div>
-        )}
+        <Card className="p-0 border-none shadow-sm bg-transparent">
+          <DataTable
+            columns={columns}
+            data={issues}
+            searchKey="project"
+            searchPlaceholder="Search by project..."
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onView={handleEdit}
+            onPrint={(issue) => toast({ title: "Printing Issue Slip", description: `Printing slip for ${issue.id}` })}
+          />
+        </Card>
       </div>
 
-      <CrudModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false)
-          setEditingIssue(null)
-        }}
+      <FormDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        title={dialogMode === "create" ? "New Store Issue" : `Edit: ${currentIssue?.id}`}
         onSave={handleSave}
-        title={editingIssue ? "Edit Store Issue" : "New Store Issue"}
-        fields={formFields}
-        initialData={editingIssue || undefined}
-      />
+        isSaving={isLoading}
+        maxWidth="3xl"
+      >
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="project">Project <span className="text-destructive">*</span></Label>
+              <Select
+                value={formData.project}
+                onValueChange={(val) => setFormData({ ...formData, project: val })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select project" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Downtown Tower">Downtown Tower</SelectItem>
+                  <SelectItem value="Highway Extension">Highway Extension</SelectItem>
+                  <SelectItem value="HQ Renovation">HQ Renovation</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="requestedBy">Requested By <span className="text-destructive">*</span></Label>
+              <Input
+                id="requestedBy"
+                value={formData.requestedBy || ""}
+                onChange={(e) => setFormData({ ...formData, requestedBy: e.target.value })}
+                placeholder="e.g. John Smith"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="date">Date Needed</Label>
+              <Input
+                id="date"
+                type="date"
+                value={formData.date || ""}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                className="min-h-[120px]"
+                placeholder="Additional instructions..."
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Placeholder for Items Grid */}
+        <div className="mt-8">
+          <h3 className="font-semibold mb-4">Items to Issue</h3>
+          <div className="p-8 border border-dashed rounded-lg text-center text-muted-foreground bg-muted/20">
+            <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p>Items selection grid would go here</p>
+          </div>
+        </div>
+      </FormDialog>
 
       <DeleteDialog
-        isOpen={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        onConfirm={() => {
-          if (issueToDelete) handleDelete(issueToDelete)
-          setDeleteDialogOpen(false)
-        }}
-        title="Delete Store Issue"
-        description="Are you sure you want to delete this store issue record? This action cannot be undone."
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title="Delete Issue"
+        description="Are you sure you want to delete this store issue? This action cannot be undone."
       />
     </ErpLayout>
   )

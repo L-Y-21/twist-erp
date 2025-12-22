@@ -9,13 +9,16 @@ import { DeleteDialog } from "@/components/delete-dialog"
 import { ViewSwitcher } from "@/components/view-switcher"
 import { GridCard } from "@/components/grid-card"
 import { DataTable, SortableHeader } from "@/components/data-table"
-import { Plus, Edit, Trash2, Eye, RefreshCcw } from "lucide-react"
+import { Plus, Edit, Trash2, Eye, RefreshCcw, AlertTriangle, CheckCircle, DollarSign } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { navigationConfig } from "@/lib/navigation"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { FormFieldWrapper } from "@/components/form-field-wrapper"
 
 interface StockAdjustment {
   id: string
@@ -58,7 +61,7 @@ export default function StockAdjustmentPage() {
   const { toast } = useToast()
   const router = useRouter()
   const [adjustments, setAdjustments] = useState<StockAdjustment[]>(mockAdjustments)
-  const [viewMode, setViewMode] = useState<"list" | "grid">("list")
+  const [viewMode, setViewMode] = useState<"table" | "grid">("table")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingAdjustment, setEditingAdjustment] = useState<StockAdjustment | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -183,14 +186,20 @@ export default function StockAdjustmentPage() {
   return (
     <ErpLayout navigation={navigationConfig}>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Stock Adjustment</h1>
-            <p className="text-muted-foreground">Adjust stock levels for discrepancies</p>
+            <h1 className="text-4xl font-black tracking-tight text-foreground">Stock <span className="text-primary">Adjustment</span></h1>
+            <p className="text-muted-foreground mt-1">Adjust stock levels for discrepancies and write-offs</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-3">
             <ViewSwitcher view={viewMode} onViewChange={setViewMode} />
-            <Button onClick={() => setIsModalOpen(true)}>
+            <Button
+              onClick={() => {
+                setEditingAdjustment(null)
+                setIsModalOpen(true)
+              }}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_rgba(var(--primary),0.3)] rounded-xl px-6"
+            >
               <Plus className="h-4 w-4 mr-2" />
               New Adjustment
             </Button>
@@ -198,29 +207,25 @@ export default function StockAdjustmentPage() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-4">
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Total Adjustments</div>
-            <div className="text-2xl font-bold">{adjustments.length}</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Total Adjustment</div>
-            <div className="text-2xl font-bold text-red-600">
-              {formatCurrency(Math.abs(adjustments.reduce((sum, a) => sum + a.adjustmentValue, 0)))}
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Pending Approval</div>
-            <div className="text-2xl font-bold">{adjustments.filter((a) => a.status === "Draft").length}</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Approved</div>
-            <div className="text-2xl font-bold text-green-600">
-              {adjustments.filter((a) => a.status === "Approved").length}
-            </div>
-          </Card>
+          {[
+            { label: "Total Adjustments", value: adjustments.length, icon: <RefreshCcw className="h-5 w-5" />, color: "text-blue-600" },
+            { label: "Total Value", value: formatCurrency(Math.abs(adjustments.reduce((sum, a) => sum + a.adjustmentValue, 0))), icon: <DollarSign className="h-5 w-5" />, color: "text-red-600" },
+            { label: "Pending Approval", value: adjustments.filter((a) => a.status === "Draft").length, icon: <AlertTriangle className="h-5 w-5" />, color: "text-amber-600" },
+            { label: "Approved", value: adjustments.filter((a) => a.status === "Approved").length, icon: <CheckCircle className="h-5 w-5" />, color: "text-emerald-600" },
+          ].map((stat) => (
+            <Card key={stat.label} className="p-6 bg-glass border-glass relative overflow-hidden group hover:border-primary/30 transition-all duration-500 rounded-3xl">
+              <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
+                {stat.icon}
+              </div>
+              <div className="relative z-10">
+                <div className="text-xs font-bold uppercase tracking-[0.15em] text-sidebar-foreground/40 mb-2">{stat.label}</div>
+                <div className={cn("text-3xl font-black tracking-tight", stat.color)}>{stat.value}</div>
+              </div>
+            </Card>
+          ))}
         </div>
 
-        {viewMode === "list" ? (
+        {viewMode === "table" ? (
           <Card className="p-6">
             <DataTable columns={columns} data={adjustments} />
           </Card>
@@ -229,19 +234,13 @@ export default function StockAdjustmentPage() {
             {adjustments.map((adjustment) => (
               <GridCard
                 key={adjustment.id}
-                icon={<RefreshCcw className="h-5 w-5" />}
                 title={adjustment.adjustmentNo}
                 subtitle={adjustment.store}
-                status={adjustment.status}
-                fields={[
-                  { label: "Date", value: adjustment.date },
-                  { label: "Reason", value: adjustment.reason },
-                  { label: "Items", value: `${adjustment.items} items` },
-                  {
-                    label: "Adjustment",
-                    value: `${adjustment.adjustmentValue < 0 ? "-" : "+"}${formatCurrency(Math.abs(adjustment.adjustmentValue))}`,
-                  },
-                  { label: "Adjusted By", value: adjustment.adjustedBy },
+                badges={[{ label: adjustment.status, variant: adjustment.status === "Approved" ? "default" : "outline" }]}
+                metadata={[
+                  { icon: RefreshCcw, label: adjustment.reason },
+                  { icon: CheckCircle, label: `${adjustment.items} items` },
+                  { icon: DollarSign, label: `${adjustment.adjustmentValue < 0 ? "-" : "+"}${formatCurrency(Math.abs(adjustment.adjustmentValue))}` },
                 ]}
                 onView={() => router.push(`/stock-adjustment/${adjustment.id}`)}
                 onEdit={() => handleEdit(adjustment)}
@@ -256,20 +255,50 @@ export default function StockAdjustmentPage() {
       </div>
 
       <CrudModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false)
-          setEditingAdjustment(null)
+        open={isModalOpen}
+        onOpenChange={(open) => {
+          setIsModalOpen(open)
+          if (!open) setEditingAdjustment(null)
         }}
-        onSave={handleSave}
+        onSubmit={() => handleSave({})}
         title={editingAdjustment ? "Edit Stock Adjustment" : "New Stock Adjustment"}
-        fields={formFields}
-        initialData={editingAdjustment || undefined}
-      />
+      >
+        <div className="grid grid-cols-2 gap-4">
+          <FormFieldWrapper label="Date" required>
+            <Input type="date" defaultValue={editingAdjustment?.date} />
+          </FormFieldWrapper>
+          <FormFieldWrapper label="Store" required>
+            <Input defaultValue={editingAdjustment?.store} />
+          </FormFieldWrapper>
+          <FormFieldWrapper label="Reason" required>
+            <Input defaultValue={editingAdjustment?.reason} />
+          </FormFieldWrapper>
+          <FormFieldWrapper label="Items" required>
+            <Input type="number" defaultValue={editingAdjustment?.items} />
+          </FormFieldWrapper>
+          <FormFieldWrapper label="Adjustment Value" required>
+            <Input type="number" defaultValue={editingAdjustment?.adjustmentValue} />
+          </FormFieldWrapper>
+          <FormFieldWrapper label="Adjusted By" required>
+            <Input defaultValue={editingAdjustment?.adjustedBy} />
+          </FormFieldWrapper>
+          <FormFieldWrapper label="Status" required>
+            <Select defaultValue={editingAdjustment?.status || "Draft"}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Draft">Draft</SelectItem>
+                <SelectItem value="Approved">Approved</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormFieldWrapper>
+        </div>
+      </CrudModal>
 
       <DeleteDialog
-        isOpen={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
         onConfirm={() => {
           if (adjustmentToDelete) handleDelete(adjustmentToDelete)
           setDeleteDialogOpen(false)
