@@ -1,10 +1,16 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import type { Repository } from "typeorm"
 import type { Customer } from "./entities/customer.entity"
+import type { CreateCustomerDto } from "./dto/create-customer.dto"
+import type { UpdateCustomerDto } from "./dto/update-customer.dto"
 
 @Injectable()
 export class CustomersService {
-  constructor(private customerRepository: Repository<Customer>) {}
+  private customerRepository: Repository<Customer>
+
+  constructor(customerRepository: Repository<Customer>) {
+    this.customerRepository = customerRepository
+  }
 
   async findAll(): Promise<Customer[]> {
     return this.customerRepository.find({
@@ -26,7 +32,7 @@ export class CustomersService {
     return customer
   }
 
-  async create(data: any): Promise<Customer> {
+  async create(data: CreateCustomerDto): Promise<Customer> {
     const code = await this.generateCustomerCode()
     const customer = this.customerRepository.create({ ...data, code })
     return this.customerRepository.save(customer)
@@ -45,5 +51,16 @@ export class CustomersService {
     }
 
     return `CUS${sequence.toString().padStart(5, "0")}`
+  }
+
+  async update(id: string, updateCustomerDto: UpdateCustomerDto): Promise<Customer> {
+    await this.findOne(id)
+    await this.customerRepository.update(id, updateCustomerDto)
+    return this.findOne(id)
+  }
+
+  async remove(id: string): Promise<void> {
+    await this.findOne(id)
+    await this.customerRepository.softDelete(id)
   }
 }

@@ -122,4 +122,9 @@ export class VehiclesService {
       ].filter(Boolean),
     }))
   }
+
+  async remove(id: string): Promise<void> {
+    await this.findOne(id)
+    await this.vehicleRepository.update(id, { isActive: false })
+  }
 }

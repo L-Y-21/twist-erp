@@ -124,4 +124,9 @@ export class ProjectsService {
       },
     }
   }
+
+  async remove(id: string): Promise<void> {
+    await this.findOne(id)
+    await this.projectRepository.softDelete(id)
+  }
 }
