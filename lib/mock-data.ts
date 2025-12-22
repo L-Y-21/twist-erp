@@ -38,7 +38,6 @@ export interface InventoryItem {
   unitPrice: number
   reorderLevel: number
   status: "In Stock" | "Low Stock" | "Out of Stock"
-  location?: string
 }
 
 export const mockUsers: User[] = [

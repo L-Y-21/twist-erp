@@ -9,16 +9,13 @@ import { DeleteDialog } from "@/components/delete-dialog"
 import { ViewSwitcher } from "@/components/view-switcher"
 import { GridCard } from "@/components/grid-card"
 import { DataTable, SortableHeader } from "@/components/data-table"
-import { Plus, Edit, Trash2, Eye, ArrowRightLeft, Truck, CheckCircle, DollarSign } from "lucide-react"
+import { Plus, Edit, Trash2, Eye, ArrowRightLeft } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { navigationConfig } from "@/lib/navigation"
-import { formatCurrency, cn } from "@/lib/utils"
+import { formatCurrency } from "@/lib/utils"
 import { useRouter } from "next/navigation"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { FormFieldWrapper } from "@/components/form-field-wrapper"
 
 interface StoreTransfer {
   id: string
@@ -61,7 +58,7 @@ export default function StoreTransferPage() {
   const { toast } = useToast()
   const router = useRouter()
   const [transfers, setTransfers] = useState<StoreTransfer[]>(mockTransfers)
-  const [viewMode, setViewMode] = useState<"table" | "grid">("table")
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingTransfer, setEditingTransfer] = useState<StoreTransfer | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -182,20 +179,14 @@ export default function StoreTransferPage() {
   return (
     <ErpLayout navigation={navigationConfig}>
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-black tracking-tight text-foreground">Store <span className="text-primary">Transfer</span></h1>
-            <p className="text-muted-foreground mt-1">Transfer items between stores and warehouses</p>
+            <h1 className="text-3xl font-bold">Store Transfer</h1>
+            <p className="text-muted-foreground">Transfer items between stores</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex gap-2">
             <ViewSwitcher view={viewMode} onViewChange={setViewMode} />
-            <Button
-              onClick={() => {
-                setEditingTransfer(null)
-                setIsModalOpen(true)
-              }}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_rgba(var(--primary),0.3)] rounded-xl px-6"
-            >
+            <Button onClick={() => setIsModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               New Transfer
             </Button>
@@ -203,25 +194,29 @@ export default function StoreTransferPage() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-4">
-          {[
-            { label: "Total Transfers", value: transfers.length, icon: <ArrowRightLeft className="h-5 w-5" />, color: "text-blue-600" },
-            { label: "Total Value", value: formatCurrency(transfers.reduce((sum, t) => sum + t.totalValue, 0)), icon: <DollarSign className="h-5 w-5" />, color: "text-emerald-600" },
-            { label: "In Transit", value: transfers.filter((t) => t.status === "In Transit").length, icon: <Truck className="h-5 w-5" />, color: "text-amber-600" },
-            { label: "Completed", value: transfers.filter((t) => t.status === "Completed").length, icon: <CheckCircle className="h-5 w-5" />, color: "text-emerald-600" },
-          ].map((stat) => (
-            <Card key={stat.label} className="p-6 bg-glass border-glass relative overflow-hidden group hover:border-primary/30 transition-all duration-500 rounded-3xl">
-              <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
-                {stat.icon}
-              </div>
-              <div className="relative z-10">
-                <div className="text-xs font-bold uppercase tracking-[0.15em] text-sidebar-foreground/40 mb-2">{stat.label}</div>
-                <div className={cn("text-3xl font-black tracking-tight", stat.color)}>{stat.value}</div>
-              </div>
-            </Card>
-          ))}
+          <Card className="p-4">
+            <div className="text-sm text-muted-foreground">Total Transfers</div>
+            <div className="text-2xl font-bold">{transfers.length}</div>
+          </Card>
+          <Card className="p-4">
+            <div className="text-sm text-muted-foreground">Total Value</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(transfers.reduce((sum, t) => sum + t.totalValue, 0))}
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="text-sm text-muted-foreground">In Transit</div>
+            <div className="text-2xl font-bold">{transfers.filter((t) => t.status === "In Transit").length}</div>
+          </Card>
+          <Card className="p-4">
+            <div className="text-sm text-muted-foreground">Completed</div>
+            <div className="text-2xl font-bold text-green-600">
+              {transfers.filter((t) => t.status === "Completed").length}
+            </div>
+          </Card>
         </div>
 
-        {viewMode === "table" ? (
+        {viewMode === "list" ? (
           <Card className="p-6">
             <DataTable columns={columns} data={transfers} />
           </Card>
@@ -230,13 +225,15 @@ export default function StoreTransferPage() {
             {transfers.map((transfer) => (
               <GridCard
                 key={transfer.id}
+                icon={<ArrowRightLeft className="h-5 w-5" />}
                 title={transfer.voucherNo}
                 subtitle={`${transfer.fromStore} → ${transfer.toStore}`}
-                badges={[{ label: transfer.status, variant: transfer.status === "Completed" ? "default" : transfer.status === "In Transit" ? "secondary" : "outline" }]}
-                metadata={[
-                  { icon: ArrowRightLeft, label: transfer.date },
-                  { icon: Truck, label: `${transfer.items} items` },
-                  { icon: DollarSign, label: formatCurrency(transfer.totalValue) },
+                status={transfer.status}
+                fields={[
+                  { label: "Date", value: transfer.date },
+                  { label: "Items", value: `${transfer.items} items` },
+                  { label: "Value", value: formatCurrency(transfer.totalValue) },
+                  { label: "Transferred By", value: transfer.transferredBy },
                 ]}
                 onView={() => router.push(`/store-transfer/${transfer.id}`)}
                 onEdit={() => handleEdit(transfer)}
@@ -251,51 +248,20 @@ export default function StoreTransferPage() {
       </div>
 
       <CrudModal
-        open={isModalOpen}
-        onOpenChange={(open) => {
-          setIsModalOpen(open)
-          if (!open) setEditingTransfer(null)
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false)
+          setEditingTransfer(null)
         }}
-        onSubmit={() => handleSave({})}
+        onSave={handleSave}
         title={editingTransfer ? "Edit Store Transfer" : "New Store Transfer"}
-      >
-        <div className="grid grid-cols-2 gap-4">
-          <FormFieldWrapper label="Date" required>
-            <Input type="date" defaultValue={editingTransfer?.date} />
-          </FormFieldWrapper>
-          <FormFieldWrapper label="From Store" required>
-            <Input defaultValue={editingTransfer?.fromStore} />
-          </FormFieldWrapper>
-          <FormFieldWrapper label="To Store" required>
-            <Input defaultValue={editingTransfer?.toStore} />
-          </FormFieldWrapper>
-          <FormFieldWrapper label="Items" required>
-            <Input type="number" defaultValue={editingTransfer?.items} />
-          </FormFieldWrapper>
-          <FormFieldWrapper label="Total Value" required>
-            <Input type="number" defaultValue={editingTransfer?.totalValue} />
-          </FormFieldWrapper>
-          <FormFieldWrapper label="Transferred By" required>
-            <Input defaultValue={editingTransfer?.transferredBy} />
-          </FormFieldWrapper>
-          <FormFieldWrapper label="Status" required>
-            <Select defaultValue={editingTransfer?.status || "Draft"}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Draft">Draft</SelectItem>
-                <SelectItem value="In Transit">In Transit</SelectItem>
-                <SelectItem value="Completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-          </FormFieldWrapper>
-        </div>
-      </CrudModal>
+        fields={formFields}
+        initialData={editingTransfer || undefined}
+      />
 
       <DeleteDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
         onConfirm={() => {
           if (transferToDelete) handleDelete(transferToDelete)
           setDeleteDialogOpen(false)

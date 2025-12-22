@@ -9,16 +9,13 @@ import { DeleteDialog } from "@/components/delete-dialog"
 import { ViewSwitcher } from "@/components/view-switcher"
 import { GridCard } from "@/components/grid-card"
 import { DataTable, SortableHeader } from "@/components/data-table"
-import { Plus, Edit, Trash2, Eye, FileText, Clock, CheckCircle, DollarSign } from "lucide-react"
+import { Plus, Edit, Trash2, Eye, FileText } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { navigationConfig } from "@/lib/navigation"
-import { formatCurrency, cn } from "@/lib/utils"
+import { formatCurrency } from "@/lib/utils"
 import { useRouter } from "next/navigation"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { FormFieldWrapper } from "@/components/form-field-wrapper"
 
 interface Requisition {
   id: string
@@ -61,7 +58,7 @@ export default function RequisitionsPage() {
   const { toast } = useToast()
   const router = useRouter()
   const [requisitions, setRequisitions] = useState<Requisition[]>(mockRequisitions)
-  const [viewMode, setViewMode] = useState<"table" | "grid">("table")
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingRequisition, setEditingRequisition] = useState<Requisition | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -97,12 +94,12 @@ export default function RequisitionsPage() {
   const columns: ColumnDef<Requisition>[] = [
     {
       accessorKey: "requisitionNo",
-      header: ({ column }: { column: any }) => <SortableHeader column={column}>Requisition #</SortableHeader>,
-      cell: ({ row }: { row: any }) => <span className="font-medium">{row.getValue("requisitionNo")}</span>,
+      header: ({ column }) => <SortableHeader column={column}>Requisition #</SortableHeader>,
+      cell: ({ row }) => <span className="font-medium">{row.getValue("requisitionNo")}</span>,
     },
     {
       accessorKey: "date",
-      header: ({ column }: { column: any }) => <SortableHeader column={column}>Date</SortableHeader>,
+      header: ({ column }) => <SortableHeader column={column}>Date</SortableHeader>,
     },
     {
       accessorKey: "requestedBy",
@@ -119,17 +116,17 @@ export default function RequisitionsPage() {
     {
       accessorKey: "items",
       header: "Items",
-      cell: ({ row }: { row: any }) => <span>{row.getValue("items")} items</span>,
+      cell: ({ row }) => <span>{row.getValue("items")} items</span>,
     },
     {
       accessorKey: "estimatedValue",
       header: "Est. Value",
-      cell: ({ row }: { row: any }) => <span>{formatCurrency(row.getValue("estimatedValue"))}</span>,
+      cell: ({ row }) => <span>{formatCurrency(row.getValue("estimatedValue"))}</span>,
     },
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }: { row: any }) => {
+      cell: ({ row }) => {
         const status = row.getValue("status") as string
         const variant =
           status === "Approved"
@@ -144,7 +141,7 @@ export default function RequisitionsPage() {
     },
     {
       id: "actions",
-      cell: ({ row }: { row: any }) => (
+      cell: ({ row }) => (
         <div className="flex gap-1">
           <Button size="sm" variant="ghost" onClick={() => router.push(`/requisitions/${row.original.id}`)}>
             <Eye className="h-4 w-4" />
@@ -186,20 +183,14 @@ export default function RequisitionsPage() {
   return (
     <ErpLayout navigation={navigationConfig}>
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-black tracking-tight text-foreground">Item <span className="text-primary">Requisitions</span></h1>
-            <p className="text-muted-foreground mt-1">Request and manage items for projects and departments</p>
+            <h1 className="text-3xl font-bold">Item Requisitions</h1>
+            <p className="text-muted-foreground">Request items for projects and departments</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex gap-2">
             <ViewSwitcher view={viewMode} onViewChange={setViewMode} />
-            <Button
-              onClick={() => {
-                setEditingRequisition(null)
-                setIsModalOpen(true)
-              }}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_rgba(var(--primary),0.3)] rounded-xl px-6"
-            >
+            <Button onClick={() => setIsModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               New Requisition
             </Button>
@@ -207,25 +198,31 @@ export default function RequisitionsPage() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-4">
-          {[
-            { label: "Total Requisitions", value: requisitions.length, icon: <FileText className="h-5 w-5" />, color: "text-blue-600" },
-            { label: "Pending", value: requisitions.filter((r) => r.status === "Pending").length, icon: <Clock className="h-5 w-5" />, color: "text-amber-600" },
-            { label: "Approved", value: requisitions.filter((r) => r.status === "Approved").length, icon: <CheckCircle className="h-5 w-5" />, color: "text-emerald-600" },
-            { label: "Total Est. Value", value: formatCurrency(requisitions.reduce((sum, r) => sum + r.estimatedValue, 0)), icon: <DollarSign className="h-5 w-5" />, color: "text-emerald-600" },
-          ].map((stat) => (
-            <Card key={stat.label} className="p-6 bg-glass border-glass relative overflow-hidden group hover:border-primary/30 transition-all duration-500 rounded-3xl">
-              <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
-                {stat.icon}
-              </div>
-              <div className="relative z-10">
-                <div className="text-xs font-bold uppercase tracking-[0.15em] text-sidebar-foreground/40 mb-2">{stat.label}</div>
-                <div className={cn("text-3xl font-black tracking-tight", stat.color)}>{stat.value}</div>
-              </div>
-            </Card>
-          ))}
+          <Card className="p-4">
+            <div className="text-sm text-muted-foreground">Total Requisitions</div>
+            <div className="text-2xl font-bold">{requisitions.length}</div>
+          </Card>
+          <Card className="p-4">
+            <div className="text-sm text-muted-foreground">Pending</div>
+            <div className="text-2xl font-bold text-yellow-600">
+              {requisitions.filter((r) => r.status === "Pending").length}
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="text-sm text-muted-foreground">Approved</div>
+            <div className="text-2xl font-bold text-green-600">
+              {requisitions.filter((r) => r.status === "Approved").length}
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="text-sm text-muted-foreground">Total Est. Value</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(requisitions.reduce((sum, r) => sum + r.estimatedValue, 0))}
+            </div>
+          </Card>
         </div>
 
-        {viewMode === "table" ? (
+        {viewMode === "list" ? (
           <Card className="p-6">
             <DataTable columns={columns} data={requisitions} />
           </Card>
@@ -234,13 +231,16 @@ export default function RequisitionsPage() {
             {requisitions.map((requisition) => (
               <GridCard
                 key={requisition.id}
+                icon={<FileText className="h-5 w-5" />}
                 title={requisition.requisitionNo}
                 subtitle={requisition.requestedBy}
-                badges={[{ label: requisition.status, variant: requisition.status === "Approved" ? "default" : requisition.status === "Pending" ? "secondary" : "destructive" }]}
-                metadata={[
-                  { icon: FileText, label: requisition.department },
-                  { icon: CheckCircle, label: requisition.project },
-                  { icon: DollarSign, label: formatCurrency(requisition.estimatedValue) },
+                status={requisition.status}
+                fields={[
+                  { label: "Date", value: requisition.date },
+                  { label: "Department", value: requisition.department },
+                  { label: "Project", value: requisition.project },
+                  { label: "Items", value: `${requisition.items} items` },
+                  { label: "Est. Value", value: formatCurrency(requisition.estimatedValue) },
                 ]}
                 onView={() => router.push(`/requisitions/${requisition.id}`)}
                 onEdit={() => handleEdit(requisition)}
@@ -255,52 +255,20 @@ export default function RequisitionsPage() {
       </div>
 
       <CrudModal
-        open={isModalOpen}
-        onOpenChange={(open) => {
-          setIsModalOpen(open)
-          if (!open) setEditingRequisition(null)
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false)
+          setEditingRequisition(null)
         }}
-        onSubmit={() => handleSave({})}
+        onSave={handleSave}
         title={editingRequisition ? "Edit Requisition" : "New Requisition"}
-      >
-        <div className="grid grid-cols-2 gap-4">
-          <FormFieldWrapper label="Date" required>
-            <Input type="date" defaultValue={editingRequisition?.date} />
-          </FormFieldWrapper>
-          <FormFieldWrapper label="Requested By" required>
-            <Input defaultValue={editingRequisition?.requestedBy} />
-          </FormFieldWrapper>
-          <FormFieldWrapper label="Department" required>
-            <Input defaultValue={editingRequisition?.department} />
-          </FormFieldWrapper>
-          <FormFieldWrapper label="Project" required>
-            <Input defaultValue={editingRequisition?.project} />
-          </FormFieldWrapper>
-          <FormFieldWrapper label="Items" required>
-            <Input type="number" defaultValue={editingRequisition?.items} />
-          </FormFieldWrapper>
-          <FormFieldWrapper label="Estimated Value" required>
-            <Input type="number" defaultValue={editingRequisition?.estimatedValue} />
-          </FormFieldWrapper>
-          <FormFieldWrapper label="Status" required>
-            <Select defaultValue={editingRequisition?.status || "Pending"}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Pending">Pending</SelectItem>
-                <SelectItem value="Approved">Approved</SelectItem>
-                <SelectItem value="Rejected">Rejected</SelectItem>
-                <SelectItem value="Fulfilled">Fulfilled</SelectItem>
-              </SelectContent>
-            </Select>
-          </FormFieldWrapper>
-        </div>
-      </CrudModal>
+        fields={formFields}
+        initialData={editingRequisition || undefined}
+      />
 
       <DeleteDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
         onConfirm={() => {
           if (requisitionToDelete) handleDelete(requisitionToDelete)
           setDeleteDialogOpen(false)
