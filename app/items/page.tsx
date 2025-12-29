@@ -7,14 +7,13 @@ import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { DataTable, SortableHeader } from "@/components/data-table"
-import { Plus, Edit, Trash2 } from "lucide-react"
+import { DataTable } from "@/components/data-table"
+import { Plus, Edit, Trash2, Package } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { navigationConfig } from "@/lib/navigation"
-import { itemsApi, type Item } from "@/lib/api/items"
 import {
   Dialog,
   DialogContent,
@@ -27,6 +26,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { simulateApi } from "@/lib/api/simulation"
+import { cn } from "@/lib/utils"
 
 export default function ItemsPage() {
   const router = useRouter()
@@ -40,17 +40,13 @@ export default function ItemsPage() {
   const [activeTab, setActiveTab] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [editingItem, setEditingItem] = useState<Item | null>(null)
+  const [editingItem, setEditingItem] = useState<any | null>(null)
   const [formData, setFormData] = useState({
     name: "",
     code: "",
-    description: "",
-    categoryId: "",
-    unitId: "",
-    reorderLevel: 10,
-    minStockLevel: 5,
-    maxStockLevel: 100,
-    isActive: true,
+    stock: 0,
+    unit: "Units",
+    status: "In Stock",
   })
 
   useEffect(() => {
@@ -68,42 +64,29 @@ export default function ItemsPage() {
     e.preventDefault()
     if (editingItem) {
       await simulateApi.inventory.update(editingItem.id, formData)
-      toast({ title: "Success", description: "Simulated: Item updated" })
+      toast({ title: "Success", description: "Item updated" })
     } else {
       await simulateApi.inventory.create(formData)
-      toast({ title: "Success", description: "Simulated: Item created" })
+      toast({ title: "Success", description: "Item created" })
     }
     setIsDialogOpen(false)
     loadData()
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this item?")) return
-    try {
-      await itemsApi.delete(id)
-      toast({ title: "Success", description: "Item deleted successfully" })
-      loadData()
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete item",
-        variant: "destructive",
-      })
-    }
+    await simulateApi.inventory.delete(id)
+    toast({ title: "Success", description: "Item deleted" })
+    loadData()
   }
 
-  const handleEdit = (item: Item) => {
+  const handleEdit = (item: any) => {
     setEditingItem(item)
     setFormData({
       name: item.name,
       code: item.code,
-      description: item.description || "",
-      categoryId: item.categoryId,
-      unitId: item.unitId,
-      reorderLevel: item.reorderLevel,
-      minStockLevel: item.minStockLevel,
-      maxStockLevel: item.maxStockLevel,
-      isActive: item.isActive,
+      stock: item.stock,
+      unit: item.unit,
+      status: item.status,
     })
     setIsDialogOpen(true)
   }
@@ -113,71 +96,72 @@ export default function ItemsPage() {
     setFormData({
       name: "",
       code: "",
-      description: "",
-      categoryId: "",
-      unitId: "",
-      reorderLevel: 10,
-      minStockLevel: 5,
-      maxStockLevel: 100,
-      isActive: true,
+      stock: 0,
+      unit: "Units",
+      status: "In Stock",
     })
   }
 
-  const filteredItems = items.filter(
-    (item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.code.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
-
-  const columns: ColumnDef<Item>[] = [
+  const columns: ColumnDef<any>[] = [
     {
       accessorKey: "code",
-      header: ({ column }) => <SortableHeader column={column}>Item Code</SortableHeader>,
-      cell: ({ row }) => <span className="font-medium">{row.getValue("code")}</span>,
+      header: "Code",
+      cell: ({ row }) => <span className="font-mono text-xs font-bold text-slate-500">{row.getValue("code")}</span>,
     },
     {
       accessorKey: "name",
-      header: ({ column }) => <SortableHeader column={column}>Item Name</SortableHeader>,
-      cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>,
+      header: "Item Name",
+      cell: ({ row }) => <span className="font-semibold text-slate-900">{row.getValue("name")}</span>,
     },
     {
-      accessorKey: "categoryId",
-      header: "Category",
-      cell: ({ row }) => {
-        const category = categories.find((c) => c.id === row.getValue("categoryId"))
-        return <Badge variant="outline">{category?.name || "N/A"}</Badge>
-      },
+      accessorKey: "stock",
+      header: "Stock",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <span className="font-bold">{row.getValue("stock")}</span>
+          <span className="text-xs text-slate-400">{row.original.unit}</span>
+        </div>
+      ),
     },
     {
-      accessorKey: "unitId",
-      header: "Unit",
-      cell: ({ row }) => {
-        const unit = units.find((u) => u.id === row.getValue("unitId"))
-        return <span className="text-muted-foreground">{unit?.abbreviation || "N/A"}</span>
-      },
-    },
-    {
-      accessorKey: "reorderLevel",
-      header: "Reorder Level",
-      cell: ({ row }) => <span>{row.getValue("reorderLevel")}</span>,
-    },
-    {
-      accessorKey: "isActive",
+      accessorKey: "status",
       header: "Status",
       cell: ({ row }) => {
-        const isActive = row.getValue("isActive")
-        return <Badge variant={isActive ? "default" : "secondary"}>{isActive ? "Active" : "Inactive"}</Badge>
+        const status = row.getValue("status") as string
+        return (
+          <Badge
+            variant="outline"
+            className={cn(
+              "font-bold uppercase tracking-wider text-[10px]",
+              status === "In Stock"
+                ? "text-emerald-600 bg-emerald-50 border-emerald-100"
+                : "text-amber-600 bg-amber-50 border-amber-100",
+            )}
+          >
+            {status}
+          </Badge>
+        )
       },
     },
     {
       id: "actions",
-      header: "Actions",
+      header: "",
       cell: ({ row }) => (
-        <div className="flex gap-1">
-          <Button size="sm" variant="ghost" onClick={() => handleEdit(row.original)}>
+        <div className="flex justify-end gap-2">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 text-slate-400 hover:text-indigo-600"
+            onClick={() => handleEdit(row.original)}
+          >
             <Edit className="h-4 w-4" />
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => handleDelete(row.original.id)}>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 text-slate-400 hover:text-rose-600"
+            onClick={() => handleDelete(row.original.id)}
+          >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -187,42 +171,80 @@ export default function ItemsPage() {
 
   return (
     <ErpLayout navigation={navigationConfig}>
-      <div className="space-y-8">
-        <div className="flex items-end justify-between">
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="text-4xl font-bold tracking-tight">Inventory</h1>
-            <p className="text-muted-foreground">Comprehensive stock management and simulation</p>
+            <div className="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-widest">
+              <Package className="h-4 w-4" /> Inventory Management
+            </div>
+            <h1 className="text-4xl font-black text-slate-900 tracking-tight">Stock Control</h1>
+            <p className="text-slate-500 font-medium">Manage and monitor construction materials in real-time.</p>
           </div>
           <Button
             onClick={() => {
               resetForm()
               setIsDialogOpen(true)
             }}
-            className="h-11 px-6"
+            className="h-12 px-8 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all hover:scale-105 active:scale-95"
           >
-            <Plus className="mr-2 h-4 w-4" /> Add New Item
+            <Plus className="mr-2 h-5 w-5" /> Add New Item
           </Button>
         </div>
 
-        {/* Simulated Metric Cards */}
+        {/* Dashboard Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
-            { label: "Total Stock Value", value: "$124,500.00", sub: "+12.5% from last month" },
-            { label: "Low Stock Items", value: "8", sub: "Requires immediate attention" },
-            { label: "Pending Issues", value: "3", sub: "2 orders in processing" },
+            { label: "Active Inventory", value: items.length.toString(), sub: "Items in system", color: "indigo" },
+            {
+              label: "Low Stock Alert",
+              value: items.filter((i) => i.stock < 50).length.toString(),
+              sub: "Items below threshold",
+              color: "amber",
+            },
+            { label: "Monthly Movement", value: "+24%", sub: "Stock turnover rate", color: "emerald" },
           ].map((stat, i) => (
-            <Card key={i} className="p-6 bg-card border-border/50 shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">{stat.label}</p>
-              <h3 className="text-3xl font-bold">{stat.value}</h3>
-              <p className="text-xs text-primary mt-2">{stat.sub}</p>
+            <Card key={i} className="p-8 bg-white border-slate-100 shadow-sm relative overflow-hidden group">
+              <div
+                className={cn(
+                  "absolute top-0 right-0 w-32 h-32 -mr-8 -mt-8 rounded-full opacity-5 transition-transform group-hover:scale-110",
+                  `bg-${stat.color}-600`,
+                )}
+              />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">{stat.label}</p>
+              <h3 className="text-4xl font-black text-slate-900 mb-1">{stat.value}</h3>
+              <p className={cn("text-xs font-bold", `text-${stat.color}-600`)}>{stat.sub}</p>
             </Card>
           ))}
         </div>
 
-        <Card className="border-border/50 shadow-sm overflow-hidden">
-          <DataTable columns={columns} data={items} />
+        <Card className="border-slate-100 shadow-xl shadow-slate-200/50 rounded-2xl overflow-hidden bg-white">
+          <div className="p-6 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
+            <div className="relative w-72">
+              <Input
+                placeholder="Search inventory..."
+                className="pl-10 h-10 bg-white border-slate-200 rounded-lg text-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <Plus className="absolute left-3 top-2.5 h-5 w-5 text-slate-400 rotate-45" />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="h-10 px-4 font-bold border-slate-200 bg-transparent">
+                Export
+              </Button>
+              <Button variant="outline" size="sm" className="h-10 px-4 font-bold border-slate-200 bg-transparent">
+                Filter
+              </Button>
+            </div>
+          </div>
+          <DataTable
+            columns={columns}
+            data={items.filter((i) => i.name.toLowerCase().includes(searchTerm.toLowerCase()))}
+          />
         </Card>
       </div>
+
+      {/* Dialog remains similar but with styled inputs matching the new aesthetic */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
           <Button onClick={resetForm}>
