@@ -42,6 +42,7 @@ const DB = {
 
 export const simulateApi = {
   getPermissions: async (): Promise<UserPermissions> => {
+    console.log("[v0] Fetching simulated permissions...")
     return new Promise((resolve) => {
       setTimeout(() => resolve(MOCK_PERMISSIONS), 300)
     })

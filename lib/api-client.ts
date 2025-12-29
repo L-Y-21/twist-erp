@@ -5,6 +5,8 @@ interface ApiError {
   statusCode: number
 }
 
+import { simulateApi } from "./api/simulation"
+
 class ApiClient {
   private baseURL: string
   private token: string | null = null
@@ -40,17 +42,44 @@ class ApiClient {
       headers["Authorization"] = `Bearer ${this.token}`
     }
 
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
-      ...options,
-      headers,
-    })
+    console.log(`[v0] Simulating request: ${options.method || "GET"} ${endpoint}`)
 
-    if (!response.ok) {
-      const error: ApiError = await response.json()
-      throw new Error(error.message || "API request failed")
+    // Basic routing for simulation
+    if (endpoint.startsWith("/inventory/items")) {
+      if (options.method === "POST")
+        return simulateApi.inventory.create(JSON.parse(options.body as string)) as Promise<T>
+      if (options.method === "PUT" || options.method === "PATCH") {
+        const id = endpoint.split("/").pop()!
+        return simulateApi.inventory.update(id, JSON.parse(options.body as string)) as Promise<T>
+      }
+      if (options.method === "DELETE") {
+        const id = endpoint.split("/").pop()!
+        return simulateApi.inventory.delete(id) as Promise<T>
+      }
+      return simulateApi.inventory.getAll() as Promise<T>
     }
 
-    return response.json()
+    if (endpoint.startsWith("/projects")) {
+      if (options.method === "POST")
+        return simulateApi.projects.create(JSON.parse(options.body as string)) as Promise<T>
+      if (options.method === "PUT" || options.method === "PATCH") {
+        const id = endpoint.split("/").pop()!
+        return simulateApi.projects.update(id, JSON.parse(options.body as string)) as Promise<T>
+      }
+      if (options.method === "DELETE") {
+        const id = endpoint.split("/").pop()!
+        return simulateApi.projects.delete(id) as Promise<T>
+      }
+      return simulateApi.projects.getAll() as Promise<T>
+    }
+
+    // Default simulation for permissions/etc
+    if (endpoint === "/auth/permissions") {
+      return simulateApi.getPermissions() as Promise<T>
+    }
+
+    // Mock generic success for other endpoints
+    return { success: true, data: [] } as Promise<T>
   }
 
   async get<T>(endpoint: string): Promise<T> {
@@ -83,4 +112,4 @@ class ApiClient {
   }
 }
 
-export const apiClient = new ApiClient(API_BASE_URL)
+export const apiClient = new ApiClient("")
