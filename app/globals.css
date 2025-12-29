@@ -4,63 +4,59 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Updated theme for professional enterprise ERP system with dark green accents */
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.15 0.01 150);
+  /* Updated theme to match the modern dark ERP inspiration (DevExtreme/Vercel style) */
+  --background: oklch(0.98 0 0);
+  --foreground: oklch(0.12 0.01 220);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.01 150);
+  --card-foreground: oklch(0.12 0.01 220);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.01 150);
-  --primary: oklch(0.35 0.12 150);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.95 0.01 150);
-  --secondary-foreground: oklch(0.15 0.01 150);
-  --muted: oklch(0.96 0.005 150);
-  --muted-foreground: oklch(0.5 0.01 150);
-  --accent: oklch(0.45 0.15 140);
-  --accent-foreground: oklch(0.99 0 0);
+  --popover-foreground: oklch(0.12 0.01 220);
+  --primary: oklch(0.45 0.15 250);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.92 0.02 220);
+  --secondary-foreground: oklch(0.2 0.02 220);
+  --muted: oklch(0.92 0.02 220);
+  --muted-foreground: oklch(0.45 0.02 220);
+  --accent: oklch(0.45 0.15 250);
+  --accent-foreground: oklch(0.98 0 0);
   --destructive: oklch(0.55 0.22 25);
-  --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.9 0.005 150);
-  --input: oklch(0.9 0.005 150);
-  --ring: oklch(0.35 0.12 150);
-  --chart-1: oklch(0.45 0.15 140);
-  --chart-2: oklch(0.6 0.18 180);
-  --chart-3: oklch(0.55 0.12 280);
-  --chart-4: oklch(0.65 0.15 140);
-  --chart-5: oklch(0.58 0.2 30);
-  --radius: 0.5rem;
-  --sidebar: oklch(0.17 0.02 155);
-  --sidebar-foreground: oklch(0.88 0.01 150);
-  --sidebar-primary: oklch(0.45 0.15 140);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.25 0.02 155);
-  --sidebar-accent-foreground: oklch(0.99 0 0);
-  --sidebar-border: oklch(0.24 0.02 155);
-  --sidebar-ring: oklch(0.45 0.15 140);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.88 0.01 220);
+  --input: oklch(0.88 0.01 220);
+  --ring: oklch(0.45 0.15 250);
+  --radius: 0.75rem;
+
+  /* Sidebar with dark gradient theme from inspiration */
+  --sidebar: oklch(0.15 0.02 240);
+  --sidebar-foreground: oklch(0.9 0.01 220);
+  --sidebar-primary: oklch(0.5 0.15 250);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.25 0.04 250);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.2 0.02 240);
+  --sidebar-ring: oklch(0.5 0.15 250);
 }
 
 .dark {
-  /* Dark theme for enterprise application */
-  --background: oklch(0.12 0.01 150);
-  --foreground: oklch(0.94 0.005 150);
-  --card: oklch(0.15 0.01 150);
-  --card-foreground: oklch(0.94 0.005 150);
-  --popover: oklch(0.15 0.01 150);
-  --popover-foreground: oklch(0.94 0.005 150);
-  --primary: oklch(0.45 0.15 140);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.22 0.02 150);
-  --secondary-foreground: oklch(0.94 0.005 150);
-  --muted: oklch(0.22 0.02 150);
-  --muted-foreground: oklch(0.6 0.01 150);
-  --accent: oklch(0.45 0.15 140);
-  --accent-foreground: oklch(0.99 0 0);
+  --background: oklch(0.1 0.01 240);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.13 0.01 240);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.13 0.01 240);
+  --popover-foreground: oklch(0.95 0 0);
+  --primary: oklch(0.55 0.15 250);
+  --primary-foreground: oklch(0.1 0.01 240);
+  --secondary: oklch(0.18 0.02 240);
+  --secondary-foreground: oklch(0.95 0 0);
+  --muted: oklch(0.18 0.02 240);
+  --muted-foreground: oklch(0.6 0.02 220);
+  --accent: oklch(0.55 0.15 250);
+  --accent-foreground: oklch(0.1 0.01 240);
   --destructive: oklch(0.5 0.2 25);
-  --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.24 0.02 150);
-  --input: oklch(0.24 0.02 150);
-  --ring: oklch(0.45 0.15 140);
+  --destructive-foreground: oklch(0.95 0 0);
+  --border: oklch(0.18 0.02 240);
+  --input: oklch(0.18 0.02 240);
+  --ring: oklch(0.55 0.15 250);
   --chart-1: oklch(0.45 0.15 140);
   --chart-2: oklch(0.6 0.18 180);
   --chart-3: oklch(0.55 0.12 280);
@@ -126,6 +122,13 @@
   }
 }
 
+/* Removed height constraints for global scrollability as requested */
+html,
+body {
+  height: auto;
+  min-height: 100%;
+}
+
 /* Added styles for interactive sidebar tooltips */
 .sidebar-tooltip-enter {
   opacity: 0;
@@ -136,6 +139,10 @@
   opacity: 1;
   transform: translateX(0);
   transition: opacity 200ms, transform 200ms;
+}
+
+.sidebar-gradient {
+  background: linear-gradient(180deg, oklch(0.18 0.04 260) 0%, oklch(0.12 0.02 240) 100%);
 }
 
 /* Added print styles for vouchers and documents */

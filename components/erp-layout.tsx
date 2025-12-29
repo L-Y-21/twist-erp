@@ -1,13 +1,11 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
-import { Bell, ChevronDown, ChevronRight, Globe, Search, Settings, User, LogOut, Menu } from "lucide-react"
+import { Bell, ChevronDown, ChevronRight, Globe, Settings, User, LogOut, Menu } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +18,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { getCurrentUser, logout } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
+import { simulateApi, type UserPermissions } from "@/lib/api/simulation"
 
 interface NavItem {
   title: string
@@ -34,134 +33,63 @@ interface ErpLayoutProps {
 }
 
 export function ErpLayout({ children, navigation }: ErpLayoutProps) {
-  const [expandedItems, setExpandedItems] = useState<string[]>(["Dashboard"])
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [activeTooltip, setActiveTooltip] = useState<string | null>(null)
-  const [currentUser, setCurrentUser] = useState(getCurrentUser())
+  const [permissions, setPermissions] = useState<UserPermissions | null>(null)
   const router = useRouter()
   const { toast } = useToast()
 
   useEffect(() => {
-    const savedColor = localStorage.getItem("theme-color")
-    if (savedColor) {
-      applyThemeColor(savedColor)
-    }
+    simulateApi.getPermissions().then(setPermissions)
   }, [])
 
-  const applyThemeColor = (color: string) => {
-    const hsl = hexToHSL(color)
-    document.documentElement.style.setProperty("--primary", `oklch(${hsl.l}% ${hsl.s}% ${hsl.h})`)
-  }
-
-  const hexToHSL = (hex: string) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-    if (!result) return { h: 0, s: 0, l: 0 }
-
-    const r = Number.parseInt(result[1], 16) / 255
-    const g = Number.parseInt(result[2], 16) / 255
-    const b = Number.parseInt(result[3], 16) / 255
-
-    const max = Math.max(r, g, b)
-    const min = Math.min(r, g, b)
-    let h = 0
-    let s = 0
-    const l = (max + min) / 2
-
-    if (max !== min) {
-      const d = max - min
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
-      switch (max) {
-        case r:
-          h = ((g - b) / d + (g < b ? 6 : 0)) / 6
-          break
-        case g:
-          h = ((b - r) / d + 2) / 6
-          break
-        case b:
-          h = ((r - g) / d + 4) / 6
-          break
-      }
-    }
-
-    return {
-      h: Math.round(h * 360),
-      s: Math.round(s * 100),
-      l: Math.round(l * 100),
-    }
-  }
-
-  const toggleItem = (title: string) => {
-    setExpandedItems((prev) => (prev.includes(title) ? prev.filter((item) => item !== title) : [...prev, title]))
-  }
-
-  const handleLogout = () => {
-    logout()
-    toast({
-      title: "Logged Out",
-      description: "You have been successfully logged out.",
-    })
-    router.push("/login")
-  }
+  const filteredNavigation = navigation.filter((item) => {
+    if (!permissions) return false
+    const moduleKey = item.title.toLowerCase().split(" ")[0]
+    return permissions.modules.includes(moduleKey) || item.title === "Dashboard" || item.title === "System Settings"
+  })
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Sidebar */}
+    <div className="flex min-h-screen bg-background text-foreground">
       <aside
         className={cn(
-          "bg-sidebar border-r border-sidebar-border transition-all duration-300 flex flex-col sticky top-0 h-screen",
-          sidebarCollapsed ? "w-16" : "w-64",
+          "sidebar-gradient border-r border-sidebar-border transition-all duration-300 flex flex-col z-20",
+          sidebarCollapsed ? "w-20" : "w-64",
+          "relative",
         )}
       >
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-          {navigation.map((item) => (
-            <NavItemComponent
-              key={item.title}
-              item={item}
-              expanded={expandedItems.includes(item.title)}
-              onToggle={toggleItem}
-              collapsed={sidebarCollapsed}
-              activeTooltip={activeTooltip}
-              setActiveTooltip={setActiveTooltip}
-            />
+        <div className="p-6 flex items-center justify-between no-print">
+          {!sidebarCollapsed && <span className="text-xl font-bold text-white tracking-tight">DevExtreme</span>}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white/70 hover:text-white hover:bg-white/10"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        </div>
+
+        <nav className="flex-1 p-3 space-y-2 overflow-y-visible">
+          {filteredNavigation.map((item) => (
+            <NavItemComponent key={item.title} item={item} collapsed={sidebarCollapsed} />
           ))}
         </nav>
 
-        {/* Collapse Toggle */}
-        <div className="border-t border-sidebar-border p-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full text-sidebar-foreground hover:bg-sidebar-accent"
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          >
-            {sidebarCollapsed ? (
-              <Menu className="h-4 w-4" />
-            ) : (
-              <span className="flex items-center gap-2">
-                <Menu className="h-4 w-4" /> Collapse
-              </span>
-            )}
-          </Button>
-        </div>
+        {!sidebarCollapsed && permissions && (
+          <div className="p-4 mx-3 mb-6 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white/50">
+            <p className="uppercase font-bold mb-1 tracking-widest">Enterprise License</p>
+            <p>Valid until: {permissions.licensedUntil}</p>
+          </div>
+        )}
       </aside>
 
-      {/* Main Content */}
       <div className="flex flex-1 flex-col">
-        {/* Header */}
-        <header className="flex h-16 items-center border-b bg-card px-6 gap-4 no-print sticky top-0 z-10">
-          {/* Global Search */}
-          <div className="flex-1 max-w-md relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search... (Ctrl + K)" className="pl-9 bg-muted/50" />
+        <header className="flex h-20 items-center border-b bg-card/80 backdrop-blur-md px-8 gap-4 no-print sticky top-0 z-30">
+          <div className="flex-1">
+            <h2 className="text-sm font-medium text-muted-foreground">Dashboard</h2>
           </div>
-
-          {/* Spacer to push items to the right */}
           <div className="flex-1" />
-
-          {/* Right Side Actions - moved to end */}
           <div className="flex items-center gap-2">
-            {/* Language Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -175,7 +103,6 @@ export function ErpLayout({ children, navigation }: ErpLayoutProps) {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Notifications */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
@@ -205,14 +132,12 @@ export function ErpLayout({ children, navigation }: ErpLayoutProps) {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Settings */}
             <Button variant="ghost" size="icon" asChild>
               <Link href="/company">
                 <Settings className="h-5 w-5" />
               </Link>
             </Button>
 
-            {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="gap-2">
@@ -220,8 +145,8 @@ export function ErpLayout({ children, navigation }: ErpLayoutProps) {
                     <User className="h-4 w-4" />
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-medium">{currentUser?.name}</p>
-                    <p className="text-xs text-muted-foreground">{currentUser?.role}</p>
+                    <p className="text-sm font-medium">{getCurrentUser()?.name}</p>
+                    <p className="text-xs text-muted-foreground">{getCurrentUser()?.role}</p>
                   </div>
                   <ChevronDown className="h-4 w-4" />
                 </Button>
@@ -234,7 +159,7 @@ export function ErpLayout({ children, navigation }: ErpLayoutProps) {
                   <Link href="/company">Settings</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                <DropdownMenuItem onClick={logout} className="text-destructive">
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout
                 </DropdownMenuItem>
@@ -243,8 +168,7 @@ export function ErpLayout({ children, navigation }: ErpLayoutProps) {
           </div>
         </header>
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 p-8 pb-20">{children}</main>
       </div>
     </div>
   )
@@ -252,37 +176,23 @@ export function ErpLayout({ children, navigation }: ErpLayoutProps) {
 
 function NavItemComponent({
   item,
-  expanded,
-  onToggle,
   collapsed,
   depth = 0,
-  activeTooltip,
-  setActiveTooltip,
 }: {
   item: NavItem
-  expanded: boolean
-  onToggle: (title: string) => void
   collapsed: boolean
   depth?: number
-  activeTooltip: string | null
-  setActiveTooltip: (title: string | null) => void
 }) {
   const hasChildren = item.children && item.children.length > 0
-  const showTooltip = activeTooltip === item.title
   const router = useRouter()
 
   const handleClick = (e: React.MouseEvent) => {
     if (collapsed) {
       if (hasChildren) {
-        setActiveTooltip(showTooltip ? null : item.title)
         e.preventDefault()
         e.stopPropagation()
       } else if (item.href) {
         router.push(item.href)
-      }
-    } else {
-      if (hasChildren) {
-        onToggle(item.title)
       }
     }
   }
@@ -293,49 +203,11 @@ function NavItemComponent({
       {!collapsed && (
         <>
           <span className="flex-1 text-left">{item.title}</span>
-          {hasChildren && <ChevronRight className={cn("h-4 w-4 transition-transform", expanded && "rotate-90")} />}
+          {hasChildren && <ChevronRight className={cn("h-4 w-4 transition-transform", depth > 0 && "rotate-90")} />}
         </>
       )}
     </>
   )
-
-  const renderTooltip = () => {
-    if (!collapsed || !showTooltip) return null
-
-    return (
-      <div
-        className="fixed left-[72px] px-4 py-3 bg-popover text-popover-foreground text-sm rounded-lg shadow-xl border border-border z-[100] whitespace-nowrap min-w-[200px] max-w-[280px]"
-        onMouseEnter={() => setActiveTooltip(item.title)}
-        onMouseLeave={() => setActiveTooltip(null)}
-      >
-        <div className="font-semibold mb-2 text-base">{item.title}</div>
-        {hasChildren && item.children && (
-          <div className="space-y-2 text-sm">
-            {item.children.map((child) => (
-              <div key={child.title}>
-                {child.href ? (
-                  <Link
-                    href={child.href}
-                    className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent/20 transition-colors text-muted-foreground hover:text-foreground"
-                    onClick={() => setActiveTooltip(null)}
-                  >
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                    {child.title}
-                  </Link>
-                ) : (
-                  <div className="flex items-center gap-2 px-2 py-1.5 text-muted-foreground">
-                    <span className="h-1.5 w-1.5 rounded-full bg-muted" />
-                    {child.title}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-        {!hasChildren && item.href && <div className="text-xs text-muted-foreground mt-1">Click to open</div>}
-      </div>
-    )
-  }
 
   return (
     <div className="relative">
@@ -347,8 +219,6 @@ function NavItemComponent({
             depth > 0 && "pl-8",
             collapsed && "justify-center",
           )}
-          onMouseEnter={() => collapsed && setActiveTooltip(item.title)}
-          onMouseLeave={() => collapsed && setActiveTooltip(null)}
         >
           {content}
         </Link>
@@ -359,30 +229,16 @@ function NavItemComponent({
             "w-full flex items-center gap-2 px-3 py-2 rounded text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors relative",
             depth > 0 && "pl-8",
             collapsed && "justify-center",
-            showTooltip && collapsed && "bg-sidebar-accent",
           )}
-          onMouseEnter={() => collapsed && setActiveTooltip(item.title)}
-          onMouseLeave={() => collapsed && !hasChildren && setActiveTooltip(null)}
         >
           {content}
         </button>
       )}
 
-      {renderTooltip()}
-
-      {!collapsed && hasChildren && expanded && (
+      {!collapsed && hasChildren && (
         <div className="mt-1 space-y-1">
           {item.children?.map((child) => (
-            <NavItemComponent
-              key={child.title}
-              item={child}
-              expanded={expanded}
-              onToggle={onToggle}
-              collapsed={collapsed}
-              depth={depth + 1}
-              activeTooltip={activeTooltip}
-              setActiveTooltip={setActiveTooltip}
-            />
+            <NavItemComponent key={child.title} item={child} collapsed={collapsed} depth={depth + 1} />
           ))}
         </div>
       )}

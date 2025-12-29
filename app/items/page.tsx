@@ -1,25 +1,20 @@
 "use client"
 
 import type React from "react"
-
 import { ErpLayout } from "@/components/erp-layout"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ViewSwitcher } from "@/components/view-switcher"
 import { DataTable, SortableHeader } from "@/components/data-table"
-import { Plus, Package, Search, Edit, Trash2 } from "lucide-react"
+import { Plus, Edit, Trash2 } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { navigationConfig } from "@/lib/navigation"
 import { itemsApi, type Item } from "@/lib/api/items"
-import { categoriesApi } from "@/lib/api/categories"
-import { unitsApi } from "@/lib/api/units"
 import {
   Dialog,
   DialogContent,
@@ -31,12 +26,13 @@ import {
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { simulateApi } from "@/lib/api/simulation"
 
 export default function ItemsPage() {
   const router = useRouter()
   const { toast } = useToast()
 
-  const [items, setItems] = useState<Item[]>([])
+  const [items, setItems] = useState<any[]>([])
   const [categories, setCategories] = useState([])
   const [units, setUnits] = useState([])
   const [loading, setLoading] = useState(true)
@@ -62,47 +58,23 @@ export default function ItemsPage() {
   }, [])
 
   const loadData = async () => {
-    try {
-      setLoading(true)
-      const [itemsData, categoriesData, unitsData] = await Promise.all([
-        itemsApi.getAll(),
-        categoriesApi.getAll(),
-        unitsApi.getAll(),
-      ])
-      setItems(itemsData)
-      setCategories(categoriesData)
-      setUnits(unitsData)
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load data",
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false)
-    }
+    setLoading(true)
+    const data = await simulateApi.inventory.getAll()
+    setItems(data)
+    setLoading(false)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    try {
-      if (editingItem) {
-        await itemsApi.update(editingItem.id, formData)
-        toast({ title: "Success", description: "Item updated successfully" })
-      } else {
-        await itemsApi.create(formData)
-        toast({ title: "Success", description: "Item created successfully" })
-      }
-      setIsDialogOpen(false)
-      resetForm()
-      loadData()
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save item",
-        variant: "destructive",
-      })
+    if (editingItem) {
+      await simulateApi.inventory.update(editingItem.id, formData)
+      toast({ title: "Success", description: "Simulated: Item updated" })
+    } else {
+      await simulateApi.inventory.create(formData)
+      toast({ title: "Success", description: "Simulated: Item created" })
     }
+    setIsDialogOpen(false)
+    loadData()
   }
 
   const handleDelete = async (id: string) => {
@@ -215,266 +187,164 @@ export default function ItemsPage() {
 
   return (
     <ErpLayout navigation={navigationConfig}>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Inventory Management</h1>
-            <p className="text-muted-foreground">Manage stock, transactions, and warehouses</p>
+      <div className="space-y-8">
+        <div className="flex items-end justify-between">
+          <div className="space-y-1">
+            <h1 className="text-4xl font-bold tracking-tight">Inventory</h1>
+            <p className="text-muted-foreground">Comprehensive stock management and simulation</p>
           </div>
-          <div className="flex gap-2">
-            <ViewSwitcher view={viewMode} onViewChange={setViewMode} />
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={resetForm}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Item
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <form onSubmit={handleSubmit}>
-                  <DialogHeader>
-                    <DialogTitle>{editingItem ? "Edit Item" : "Add New Item"}</DialogTitle>
-                    <DialogDescription>
-                      {editingItem ? "Update the item details below" : "Fill in the details to create a new item"}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="code">Item Code *</Label>
-                        <Input
-                          id="code"
-                          value={formData.code}
-                          onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Item Name *</Label>
-                        <Input
-                          id="name"
-                          value={formData.name}
-                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="description">Description</Label>
-                      <Textarea
-                        id="description"
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        rows={3}
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="category">Category *</Label>
-                        <Select
-                          value={formData.categoryId}
-                          onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {categories.map((cat) => (
-                              <SelectItem key={cat.id} value={cat.id}>
-                                {cat.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="unit">Unit *</Label>
-                        <Select
-                          value={formData.unitId}
-                          onValueChange={(value) => setFormData({ ...formData, unitId: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select unit" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {units.map((unit) => (
-                              <SelectItem key={unit.id} value={unit.id}>
-                                {unit.name} ({unit.abbreviation})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="reorderLevel">Reorder Level</Label>
-                        <Input
-                          id="reorderLevel"
-                          type="number"
-                          value={formData.reorderLevel}
-                          onChange={(e) => setFormData({ ...formData, reorderLevel: Number(e.target.value) })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="minStock">Min Stock</Label>
-                        <Input
-                          id="minStock"
-                          type="number"
-                          value={formData.minStockLevel}
-                          onChange={(e) => setFormData({ ...formData, minStockLevel: Number(e.target.value) })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="maxStock">Max Stock</Label>
-                        <Input
-                          id="maxStock"
-                          type="number"
-                          value={formData.maxStockLevel}
-                          onChange={(e) => setFormData({ ...formData, maxStockLevel: Number(e.target.value) })}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button type="submit">{editingItem ? "Update" : "Create"}</Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
+          <Button
+            onClick={() => {
+              resetForm()
+              setIsDialogOpen(true)
+            }}
+            className="h-11 px-6"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Add New Item
+          </Button>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="all">All Items</TabsTrigger>
-            <TabsTrigger value="stores">Stores</TabsTrigger>
-            <TabsTrigger value="transactions">Transactions</TabsTrigger>
-          </TabsList>
+        {/* Simulated Metric Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            { label: "Total Stock Value", value: "$124,500.00", sub: "+12.5% from last month" },
+            { label: "Low Stock Items", value: "8", sub: "Requires immediate attention" },
+            { label: "Pending Issues", value: "3", sub: "2 orders in processing" },
+          ].map((stat, i) => (
+            <Card key={i} className="p-6 bg-card border-border/50 shadow-sm">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">{stat.label}</p>
+              <h3 className="text-3xl font-bold">{stat.value}</h3>
+              <p className="text-xs text-primary mt-2">{stat.sub}</p>
+            </Card>
+          ))}
+        </div>
 
-          <TabsContent value="all" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-4">
-              <Card className="p-4">
-                <div className="text-sm text-muted-foreground">Total Items</div>
-                <div className="text-2xl font-bold">{filteredItems.length}</div>
-              </Card>
-              <Card className="p-4">
-                <div className="text-sm text-muted-foreground">Active Items</div>
-                <div className="text-2xl font-bold">{filteredItems.filter((i) => i.isActive).length}</div>
-              </Card>
-              <Card className="p-4">
-                <div className="text-sm text-muted-foreground">Categories</div>
-                <div className="text-2xl font-bold">{categories.length}</div>
-              </Card>
-              <Card className="p-4">
-                <div className="text-sm text-muted-foreground">Units</div>
-                <div className="text-2xl font-bold">{units.length}</div>
-              </Card>
-            </div>
-
-            <Card className="p-6">
-              <div className="mb-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Card className="border-border/50 shadow-sm overflow-hidden">
+          <DataTable columns={columns} data={items} />
+        </Card>
+      </div>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <Button onClick={resetForm}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Item
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl">
+          <form onSubmit={handleSubmit}>
+            <DialogHeader>
+              <DialogTitle>{editingItem ? "Edit Item" : "Add New Item"}</DialogTitle>
+              <DialogDescription>
+                {editingItem ? "Update the item details below" : "Fill in the details to create a new item"}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="code">Item Code *</Label>
                   <Input
-                    placeholder="Search items..."
-                    className="pl-9"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    id="code"
+                    value={formData.code}
+                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="name">Item Name *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
                   />
                 </div>
               </div>
-
-              {loading ? (
-                <div className="flex items-center justify-center h-64">
-                  <div className="text-muted-foreground">Loading...</div>
-                </div>
-              ) : filteredItems.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 gap-2">
-                  <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <div className="text-lg font-medium">No items found</div>
-                  <div className="text-sm text-muted-foreground">Try adjusting your filters or add a new item</div>
-                  <Button onClick={resetForm} className="mt-4">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add First Item
-                  </Button>
-                </div>
-              ) : viewMode === "list" ? (
-                <DataTable columns={columns} data={filteredItems} />
-              ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {filteredItems.map((item) => (
-                    <Card key={item.id} className="p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded bg-primary/10 flex items-center justify-center">
-                            <Package className="h-5 w-5 text-primary" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold">{item.name}</h3>
-                            <p className="text-sm text-muted-foreground">{item.code}</p>
-                          </div>
-                        </div>
-                        <Badge variant={item.isActive ? "default" : "secondary"}>
-                          {item.isActive ? "Active" : "Inactive"}
-                        </Badge>
-                      </div>
-                      <div className="space-y-2 text-sm mb-4">
-                        <div>
-                          <span className="text-muted-foreground">Category: </span>
-                          {categories.find((c) => c.id === item.categoryId)?.name || "N/A"}
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Unit: </span>
-                          {units.find((u) => u.id === item.unitId)?.abbreviation || "N/A"}
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Reorder Level: </span>
-                          {item.reorderLevel}
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => handleEdit(item)} className="flex-1">
-                          <Edit className="h-4 w-4 mr-1" />
-                          Edit
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleDelete(item.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="stores">
-            <Card className="p-6">
-              <div className="text-center py-12">
-                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Stores & Warehouses</h3>
-                <p className="text-muted-foreground mb-4">Manage your store locations and inventory</p>
-                <Button onClick={() => router.push("/stores")}>Go to Stores</Button>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={3}
+                />
               </div>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="transactions">
-            <Card className="p-6">
-              <div className="text-center py-12">
-                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Stock Movements</h3>
-                <p className="text-muted-foreground mb-4">View all inventory transactions</p>
-                <Button onClick={() => router.push("/stock-movements")}>View Transactions</Button>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category *</Label>
+                  <Select
+                    value={formData.categoryId}
+                    onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="unit">Unit *</Label>
+                  <Select
+                    value={formData.unitId}
+                    onValueChange={(value) => setFormData({ ...formData, unitId: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {units.map((unit) => (
+                        <SelectItem key={unit.id} value={unit.id}>
+                          {unit.name} ({unit.abbreviation})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="reorderLevel">Reorder Level</Label>
+                  <Input
+                    id="reorderLevel"
+                    type="number"
+                    value={formData.reorderLevel}
+                    onChange={(e) => setFormData({ ...formData, reorderLevel: Number(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="minStock">Min Stock</Label>
+                  <Input
+                    id="minStock"
+                    type="number"
+                    value={formData.minStockLevel}
+                    onChange={(e) => setFormData({ ...formData, minStockLevel: Number(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="maxStock">Max Stock</Label>
+                  <Input
+                    id="maxStock"
+                    type="number"
+                    value={formData.maxStockLevel}
+                    onChange={(e) => setFormData({ ...formData, maxStockLevel: Number(e.target.value) })}
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">{editingItem ? "Update" : "Create"}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </ErpLayout>
   )
 }
