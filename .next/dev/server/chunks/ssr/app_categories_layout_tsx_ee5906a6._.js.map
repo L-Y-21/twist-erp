@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/Administrator/Pictures/TWIST-ERP/app/categories/layout.tsx"],"sourcesContent":["import type { Metadata } from \"next\"\r\nimport type React from \"react\"\r\n\r\nexport const metadata: Metadata = {\r\n    title: \"Categories | TWIST ERP\",\r\n    description: \"Manage item categories and classifications\",\r\n}\r\n\r\nexport default function CategoriesLayout({\r\n    children,\r\n}: {\r\n    children: React.ReactNode\r\n}) {\r\n    return children\r\n}\r\n"],"names":[],"mappings":";;;;;;AAGO,MAAM,WAAqB;IAC9B,OAAO;IACP,aAAa;AACjB;AAEe,SAAS,iBAAiB,EACrC,QAAQ,EAGX;IACG,OAAO;AACX"}}]
+}

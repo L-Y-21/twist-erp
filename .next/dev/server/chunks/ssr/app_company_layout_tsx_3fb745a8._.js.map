@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/Administrator/Pictures/TWIST-ERP/app/company/layout.tsx"],"sourcesContent":["import type { Metadata } from \"next\"\r\nimport type React from \"react\"\r\n\r\nexport const metadata: Metadata = {\r\n    title: \"Company Settings | TWIST ERP\",\r\n    description: \"Configure company information and settings\",\r\n}\r\n\r\nexport default function CompanyLayout({\r\n    children,\r\n}: {\r\n    children: React.ReactNode\r\n}) {\r\n    return children\r\n}\r\n"],"names":[],"mappings":";;;;;;AAGO,MAAM,WAAqB;IAC9B,OAAO;IACP,aAAa;AACjB;AAEe,SAAS,cAAc,EAClC,QAAQ,EAGX;IACG,OAAO;AACX"}}]
+}

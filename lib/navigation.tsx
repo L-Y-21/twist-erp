@@ -46,25 +46,7 @@ export const navigationConfig: NavItem[] = [
     icon: <LayoutDashboard className="h-4 w-4" />,
     href: "/",
   },
-  {
-    title: "Project Management",
-    icon: <Briefcase className="h-4 w-4" />,
-    children: [
-      { title: "Projects", icon: <HardHat className="h-4 w-4" />, href: "/projects" },
-      { title: "Tasks", icon: <ClipboardList className="h-4 w-4" />, href: "/tasks" },
-      { title: "Project Orders", icon: <FileText className="h-4 w-4" />, href: "/project-orders" },
-    ],
-  },
-  {
-    title: "Fleet Management",
-    icon: <Truck className="h-4 w-4" />,
-    children: [
-      { title: "Vehicles", icon: <Truck className="h-4 w-4" />, href: "/vehicles" },
-      { title: "Drivers", icon: <Users className="h-4 w-4" />, href: "/drivers" },
-      { title: "Fuel Logs", icon: <Fuel className="h-4 w-4" />, href: "/fuel-logs" },
-      { title: "Trip Orders", icon: <MapPin className="h-4 w-4" />, href: "/trip-orders" },
-    ],
-  },
+
   {
     title: "Inventory",
     icon: <Package className="h-4 w-4" />,
@@ -98,6 +80,26 @@ export const navigationConfig: NavItem[] = [
           { title: "Stock Movements", icon: <Activity className="h-4 w-4" />, href: "/stock-movements" },
         ]
       },
+    ],
+  },
+
+  {
+    title: "Project Management",
+    icon: <Briefcase className="h-4 w-4" />,
+    children: [
+      { title: "Projects", icon: <HardHat className="h-4 w-4" />, href: "/projects" },
+      { title: "Tasks", icon: <ClipboardList className="h-4 w-4" />, href: "/tasks" },
+      { title: "Project Orders", icon: <FileText className="h-4 w-4" />, href: "/project-orders" },
+    ],
+  },
+  {
+    title: "Fleet Management",
+    icon: <Truck className="h-4 w-4" />,
+    children: [
+      { title: "Vehicles", icon: <Truck className="h-4 w-4" />, href: "/vehicles" },
+      { title: "Drivers", icon: <Users className="h-4 w-4" />, href: "/drivers" },
+      { title: "Fuel Logs", icon: <Fuel className="h-4 w-4" />, href: "/fuel-logs" },
+      { title: "Trip Orders", icon: <MapPin className="h-4 w-4" />, href: "/trip-orders" },
     ],
   },
   {

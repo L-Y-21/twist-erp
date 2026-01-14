@@ -3693,113 +3693,12 @@ const navigationConfig = [
         href: "/"
     },
     {
-        title: "Project Management",
-        icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$briefcase$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Briefcase$3e$__["Briefcase"], {
-            className: "h-4 w-4"
-        }, void 0, false, {
-            fileName: "[project]/lib/navigation.tsx",
-            lineNumber: 51,
-            columnNumber: 11
-        }, ("TURBOPACK compile-time value", void 0)),
-        children: [
-            {
-                title: "Projects",
-                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$hard$2d$hat$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__HardHat$3e$__["HardHat"], {
-                    className: "h-4 w-4"
-                }, void 0, false, {
-                    fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 53,
-                    columnNumber: 34
-                }, ("TURBOPACK compile-time value", void 0)),
-                href: "/projects"
-            },
-            {
-                title: "Tasks",
-                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$clipboard$2d$list$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ClipboardList$3e$__["ClipboardList"], {
-                    className: "h-4 w-4"
-                }, void 0, false, {
-                    fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 54,
-                    columnNumber: 31
-                }, ("TURBOPACK compile-time value", void 0)),
-                href: "/tasks"
-            },
-            {
-                title: "Project Orders",
-                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$file$2d$text$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__FileText$3e$__["FileText"], {
-                    className: "h-4 w-4"
-                }, void 0, false, {
-                    fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 55,
-                    columnNumber: 40
-                }, ("TURBOPACK compile-time value", void 0)),
-                href: "/project-orders"
-            }
-        ]
-    },
-    {
-        title: "Fleet Management",
-        icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$truck$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Truck$3e$__["Truck"], {
-            className: "h-4 w-4"
-        }, void 0, false, {
-            fileName: "[project]/lib/navigation.tsx",
-            lineNumber: 60,
-            columnNumber: 11
-        }, ("TURBOPACK compile-time value", void 0)),
-        children: [
-            {
-                title: "Vehicles",
-                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$truck$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Truck$3e$__["Truck"], {
-                    className: "h-4 w-4"
-                }, void 0, false, {
-                    fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 62,
-                    columnNumber: 34
-                }, ("TURBOPACK compile-time value", void 0)),
-                href: "/vehicles"
-            },
-            {
-                title: "Drivers",
-                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$users$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Users$3e$__["Users"], {
-                    className: "h-4 w-4"
-                }, void 0, false, {
-                    fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 63,
-                    columnNumber: 33
-                }, ("TURBOPACK compile-time value", void 0)),
-                href: "/drivers"
-            },
-            {
-                title: "Fuel Logs",
-                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$fuel$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Fuel$3e$__["Fuel"], {
-                    className: "h-4 w-4"
-                }, void 0, false, {
-                    fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 64,
-                    columnNumber: 35
-                }, ("TURBOPACK compile-time value", void 0)),
-                href: "/fuel-logs"
-            },
-            {
-                title: "Trip Orders",
-                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$map$2d$pin$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__MapPin$3e$__["MapPin"], {
-                    className: "h-4 w-4"
-                }, void 0, false, {
-                    fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 65,
-                    columnNumber: 37
-                }, ("TURBOPACK compile-time value", void 0)),
-                href: "/trip-orders"
-            }
-        ]
-    },
-    {
         title: "Inventory",
         icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$package$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Package$3e$__["Package"], {
             className: "h-4 w-4"
         }, void 0, false, {
             fileName: "[project]/lib/navigation.tsx",
-            lineNumber: 70,
+            lineNumber: 52,
             columnNumber: 11
         }, ("TURBOPACK compile-time value", void 0)),
         children: [
@@ -3809,7 +3708,7 @@ const navigationConfig = [
                     className: "h-3 w-3"
                 }, void 0, false, {
                     fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 74,
+                    lineNumber: 56,
                     columnNumber: 15
                 }, ("TURBOPACK compile-time value", void 0)),
                 children: [
@@ -3819,7 +3718,7 @@ const navigationConfig = [
                             className: "h-4 w-4"
                         }, void 0, false, {
                             fileName: "[project]/lib/navigation.tsx",
-                            lineNumber: 76,
+                            lineNumber: 58,
                             columnNumber: 35
                         }, ("TURBOPACK compile-time value", void 0)),
                         href: "/items"
@@ -3830,7 +3729,7 @@ const navigationConfig = [
                             className: "h-4 w-4"
                         }, void 0, false, {
                             fileName: "[project]/lib/navigation.tsx",
-                            lineNumber: 77,
+                            lineNumber: 59,
                             columnNumber: 40
                         }, ("TURBOPACK compile-time value", void 0)),
                         href: "/categories"
@@ -3841,7 +3740,7 @@ const navigationConfig = [
                             className: "h-4 w-4"
                         }, void 0, false, {
                             fileName: "[project]/lib/navigation.tsx",
-                            lineNumber: 78,
+                            lineNumber: 60,
                             columnNumber: 47
                         }, ("TURBOPACK compile-time value", void 0)),
                         href: "/stores"
@@ -3854,7 +3753,7 @@ const navigationConfig = [
                     className: "h-3 w-3"
                 }, void 0, false, {
                     fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 83,
+                    lineNumber: 65,
                     columnNumber: 15
                 }, ("TURBOPACK compile-time value", void 0)),
                 children: [
@@ -3864,7 +3763,7 @@ const navigationConfig = [
                             className: "h-4 w-4"
                         }, void 0, false, {
                             fileName: "[project]/lib/navigation.tsx",
-                            lineNumber: 85,
+                            lineNumber: 67,
                             columnNumber: 45
                         }, ("TURBOPACK compile-time value", void 0)),
                         href: "/goods-receiving"
@@ -3875,7 +3774,7 @@ const navigationConfig = [
                             className: "h-4 w-4"
                         }, void 0, false, {
                             fileName: "[project]/lib/navigation.tsx",
-                            lineNumber: 86,
+                            lineNumber: 68,
                             columnNumber: 41
                         }, ("TURBOPACK compile-time value", void 0)),
                         href: "/store-issue"
@@ -3886,7 +3785,7 @@ const navigationConfig = [
                             className: "h-4 w-4"
                         }, void 0, false, {
                             fileName: "[project]/lib/navigation.tsx",
-                            lineNumber: 87,
+                            lineNumber: 69,
                             columnNumber: 44
                         }, ("TURBOPACK compile-time value", void 0)),
                         href: "/store-transfer"
@@ -3897,7 +3796,7 @@ const navigationConfig = [
                             className: "h-4 w-4"
                         }, void 0, false, {
                             fileName: "[project]/lib/navigation.tsx",
-                            lineNumber: 88,
+                            lineNumber: 70,
                             columnNumber: 46
                         }, ("TURBOPACK compile-time value", void 0)),
                         href: "/requisitions"
@@ -3908,7 +3807,7 @@ const navigationConfig = [
                             className: "h-4 w-4"
                         }, void 0, false, {
                             fileName: "[project]/lib/navigation.tsx",
-                            lineNumber: 89,
+                            lineNumber: 71,
                             columnNumber: 46
                         }, ("TURBOPACK compile-time value", void 0)),
                         href: "/stock-adjustment"
@@ -3919,7 +3818,7 @@ const navigationConfig = [
                             className: "h-4 w-4"
                         }, void 0, false, {
                             fileName: "[project]/lib/navigation.tsx",
-                            lineNumber: 90,
+                            lineNumber: 72,
                             columnNumber: 45
                         }, ("TURBOPACK compile-time value", void 0)),
                         href: "/purchase-return"
@@ -3930,7 +3829,7 @@ const navigationConfig = [
                             className: "h-4 w-4"
                         }, void 0, false, {
                             fileName: "[project]/lib/navigation.tsx",
-                            lineNumber: 91,
+                            lineNumber: 73,
                             columnNumber: 43
                         }, ("TURBOPACK compile-time value", void 0)),
                         href: "/item-disposal"
@@ -3943,7 +3842,7 @@ const navigationConfig = [
                     className: "h-3 w-3"
                 }, void 0, false, {
                     fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 96,
+                    lineNumber: 78,
                     columnNumber: 15
                 }, ("TURBOPACK compile-time value", void 0)),
                 children: [
@@ -3953,7 +3852,7 @@ const navigationConfig = [
                             className: "h-4 w-4"
                         }, void 0, false, {
                             fileName: "[project]/lib/navigation.tsx",
-                            lineNumber: 98,
+                            lineNumber: 80,
                             columnNumber: 45
                         }, ("TURBOPACK compile-time value", void 0)),
                         href: "/stock-movements"
@@ -3963,12 +3862,113 @@ const navigationConfig = [
         ]
     },
     {
+        title: "Project Management",
+        icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$briefcase$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Briefcase$3e$__["Briefcase"], {
+            className: "h-4 w-4"
+        }, void 0, false, {
+            fileName: "[project]/lib/navigation.tsx",
+            lineNumber: 88,
+            columnNumber: 11
+        }, ("TURBOPACK compile-time value", void 0)),
+        children: [
+            {
+                title: "Projects",
+                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$hard$2d$hat$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__HardHat$3e$__["HardHat"], {
+                    className: "h-4 w-4"
+                }, void 0, false, {
+                    fileName: "[project]/lib/navigation.tsx",
+                    lineNumber: 90,
+                    columnNumber: 34
+                }, ("TURBOPACK compile-time value", void 0)),
+                href: "/projects"
+            },
+            {
+                title: "Tasks",
+                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$clipboard$2d$list$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ClipboardList$3e$__["ClipboardList"], {
+                    className: "h-4 w-4"
+                }, void 0, false, {
+                    fileName: "[project]/lib/navigation.tsx",
+                    lineNumber: 91,
+                    columnNumber: 31
+                }, ("TURBOPACK compile-time value", void 0)),
+                href: "/tasks"
+            },
+            {
+                title: "Project Orders",
+                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$file$2d$text$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__FileText$3e$__["FileText"], {
+                    className: "h-4 w-4"
+                }, void 0, false, {
+                    fileName: "[project]/lib/navigation.tsx",
+                    lineNumber: 92,
+                    columnNumber: 40
+                }, ("TURBOPACK compile-time value", void 0)),
+                href: "/project-orders"
+            }
+        ]
+    },
+    {
+        title: "Fleet Management",
+        icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$truck$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Truck$3e$__["Truck"], {
+            className: "h-4 w-4"
+        }, void 0, false, {
+            fileName: "[project]/lib/navigation.tsx",
+            lineNumber: 97,
+            columnNumber: 11
+        }, ("TURBOPACK compile-time value", void 0)),
+        children: [
+            {
+                title: "Vehicles",
+                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$truck$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Truck$3e$__["Truck"], {
+                    className: "h-4 w-4"
+                }, void 0, false, {
+                    fileName: "[project]/lib/navigation.tsx",
+                    lineNumber: 99,
+                    columnNumber: 34
+                }, ("TURBOPACK compile-time value", void 0)),
+                href: "/vehicles"
+            },
+            {
+                title: "Drivers",
+                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$users$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Users$3e$__["Users"], {
+                    className: "h-4 w-4"
+                }, void 0, false, {
+                    fileName: "[project]/lib/navigation.tsx",
+                    lineNumber: 100,
+                    columnNumber: 33
+                }, ("TURBOPACK compile-time value", void 0)),
+                href: "/drivers"
+            },
+            {
+                title: "Fuel Logs",
+                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$fuel$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Fuel$3e$__["Fuel"], {
+                    className: "h-4 w-4"
+                }, void 0, false, {
+                    fileName: "[project]/lib/navigation.tsx",
+                    lineNumber: 101,
+                    columnNumber: 35
+                }, ("TURBOPACK compile-time value", void 0)),
+                href: "/fuel-logs"
+            },
+            {
+                title: "Trip Orders",
+                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$map$2d$pin$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__MapPin$3e$__["MapPin"], {
+                    className: "h-4 w-4"
+                }, void 0, false, {
+                    fileName: "[project]/lib/navigation.tsx",
+                    lineNumber: 102,
+                    columnNumber: 37
+                }, ("TURBOPACK compile-time value", void 0)),
+                href: "/trip-orders"
+            }
+        ]
+    },
+    {
         title: "Property",
         icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$building$2d$2$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Building2$3e$__["Building2"], {
             className: "h-4 w-4"
         }, void 0, false, {
             fileName: "[project]/lib/navigation.tsx",
-            lineNumber: 105,
+            lineNumber: 107,
             columnNumber: 11
         }, ("TURBOPACK compile-time value", void 0)),
         children: [
@@ -3978,7 +3978,7 @@ const navigationConfig = [
                     className: "h-4 w-4"
                 }, void 0, false, {
                     fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 107,
+                    lineNumber: 109,
                     columnNumber: 36
                 }, ("TURBOPACK compile-time value", void 0)),
                 href: "/properties"
@@ -3989,7 +3989,7 @@ const navigationConfig = [
                     className: "h-4 w-4"
                 }, void 0, false, {
                     fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 108,
+                    lineNumber: 110,
                     columnNumber: 31
                 }, ("TURBOPACK compile-time value", void 0)),
                 href: "/units"
@@ -4000,7 +4000,7 @@ const navigationConfig = [
                     className: "h-4 w-4"
                 }, void 0, false, {
                     fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 109,
+                    lineNumber: 111,
                     columnNumber: 38
                 }, ("TURBOPACK compile-time value", void 0)),
                 href: "/leases"
@@ -4013,7 +4013,7 @@ const navigationConfig = [
             className: "h-4 w-4"
         }, void 0, false, {
             fileName: "[project]/lib/navigation.tsx",
-            lineNumber: 114,
+            lineNumber: 116,
             columnNumber: 11
         }, ("TURBOPACK compile-time value", void 0)),
         children: [
@@ -4023,7 +4023,7 @@ const navigationConfig = [
                     className: "h-4 w-4"
                 }, void 0, false, {
                     fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 116,
+                    lineNumber: 118,
                     columnNumber: 42
                 }, ("TURBOPACK compile-time value", void 0)),
                 href: "/service-requests"
@@ -4034,7 +4034,7 @@ const navigationConfig = [
                     className: "h-4 w-4"
                 }, void 0, false, {
                     fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 117,
+                    lineNumber: 119,
                     columnNumber: 37
                 }, ("TURBOPACK compile-time value", void 0)),
                 href: "/work-orders"
@@ -4045,7 +4045,7 @@ const navigationConfig = [
                     className: "h-4 w-4"
                 }, void 0, false, {
                     fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 118,
+                    lineNumber: 120,
                     columnNumber: 48
                 }, ("TURBOPACK compile-time value", void 0)),
                 href: "/preventive"
@@ -4058,7 +4058,7 @@ const navigationConfig = [
             className: "h-4 w-4"
         }, void 0, false, {
             fileName: "[project]/lib/navigation.tsx",
-            lineNumber: 123,
+            lineNumber: 125,
             columnNumber: 11
         }, ("TURBOPACK compile-time value", void 0)),
         children: [
@@ -4068,7 +4068,7 @@ const navigationConfig = [
                     className: "h-4 w-4"
                 }, void 0, false, {
                     fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 125,
+                    lineNumber: 127,
                     columnNumber: 35
                 }, ("TURBOPACK compile-time value", void 0)),
                 href: "/employees"
@@ -4079,7 +4079,7 @@ const navigationConfig = [
                     className: "h-4 w-4"
                 }, void 0, false, {
                     fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 126,
+                    lineNumber: 128,
                     columnNumber: 36
                 }, ("TURBOPACK compile-time value", void 0)),
                 href: "/attendance"
@@ -4090,7 +4090,7 @@ const navigationConfig = [
                     className: "h-4 w-4"
                 }, void 0, false, {
                     fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 127,
+                    lineNumber: 129,
                     columnNumber: 42
                 }, ("TURBOPACK compile-time value", void 0)),
                 href: "/leaves"
@@ -4101,7 +4101,7 @@ const navigationConfig = [
                     className: "h-4 w-4"
                 }, void 0, false, {
                     fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 128,
+                    lineNumber: 130,
                     columnNumber: 44
                 }, ("TURBOPACK compile-time value", void 0)),
                 href: "/payroll"
@@ -4114,7 +4114,7 @@ const navigationConfig = [
             className: "h-4 w-4"
         }, void 0, false, {
             fileName: "[project]/lib/navigation.tsx",
-            lineNumber: 133,
+            lineNumber: 135,
             columnNumber: 11
         }, ("TURBOPACK compile-time value", void 0)),
         children: [
@@ -4124,7 +4124,7 @@ const navigationConfig = [
                     className: "h-4 w-4"
                 }, void 0, false, {
                     fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 135,
+                    lineNumber: 137,
                     columnNumber: 34
                 }, ("TURBOPACK compile-time value", void 0)),
                 href: "/invoices"
@@ -4135,7 +4135,7 @@ const navigationConfig = [
                     className: "h-4 w-4"
                 }, void 0, false, {
                     fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 136,
+                    lineNumber: 138,
                     columnNumber: 34
                 }, ("TURBOPACK compile-time value", void 0)),
                 href: "/expenses"
@@ -4146,7 +4146,7 @@ const navigationConfig = [
                     className: "h-4 w-4"
                 }, void 0, false, {
                     fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 137,
+                    lineNumber: 139,
                     columnNumber: 42
                 }, ("TURBOPACK compile-time value", void 0)),
                 href: "/payments"
@@ -4159,7 +4159,7 @@ const navigationConfig = [
             className: "h-4 w-4"
         }, void 0, false, {
             fileName: "[project]/lib/navigation.tsx",
-            lineNumber: 142,
+            lineNumber: 144,
             columnNumber: 11
         }, ("TURBOPACK compile-time value", void 0)),
         children: [
@@ -4169,7 +4169,7 @@ const navigationConfig = [
                     className: "h-3 w-3"
                 }, void 0, false, {
                     fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 146,
+                    lineNumber: 148,
                     columnNumber: 15
                 }, ("TURBOPACK compile-time value", void 0)),
                 children: [
@@ -4179,7 +4179,7 @@ const navigationConfig = [
                             className: "h-4 w-4"
                         }, void 0, false, {
                             fileName: "[project]/lib/navigation.tsx",
-                            lineNumber: 148,
+                            lineNumber: 150,
                             columnNumber: 45
                         }, ("TURBOPACK compile-time value", void 0)),
                         href: "/company"
@@ -4190,7 +4190,7 @@ const navigationConfig = [
                             className: "h-4 w-4"
                         }, void 0, false, {
                             fileName: "[project]/lib/navigation.tsx",
-                            lineNumber: 149,
+                            lineNumber: 151,
                             columnNumber: 48
                         }, ("TURBOPACK compile-time value", void 0)),
                         href: "/numbering"
@@ -4201,7 +4201,7 @@ const navigationConfig = [
                             className: "h-4 w-4"
                         }, void 0, false, {
                             fileName: "[project]/lib/navigation.tsx",
-                            lineNumber: 150,
+                            lineNumber: 152,
                             columnNumber: 48
                         }, ("TURBOPACK compile-time value", void 0)),
                         href: "/workflows"
@@ -4214,7 +4214,7 @@ const navigationConfig = [
                     className: "h-3 w-3"
                 }, void 0, false, {
                     fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 155,
+                    lineNumber: 157,
                     columnNumber: 15
                 }, ("TURBOPACK compile-time value", void 0)),
                 children: [
@@ -4224,7 +4224,7 @@ const navigationConfig = [
                             className: "h-4 w-4"
                         }, void 0, false, {
                             fileName: "[project]/lib/navigation.tsx",
-                            lineNumber: 157,
+                            lineNumber: 159,
                             columnNumber: 35
                         }, ("TURBOPACK compile-time value", void 0)),
                         href: "/users"
@@ -4235,7 +4235,7 @@ const navigationConfig = [
                             className: "h-4 w-4"
                         }, void 0, false, {
                             fileName: "[project]/lib/navigation.tsx",
-                            lineNumber: 158,
+                            lineNumber: 160,
                             columnNumber: 49
                         }, ("TURBOPACK compile-time value", void 0)),
                         href: "/roles"
@@ -4248,7 +4248,7 @@ const navigationConfig = [
                     className: "h-3 w-3"
                 }, void 0, false, {
                     fileName: "[project]/lib/navigation.tsx",
-                    lineNumber: 163,
+                    lineNumber: 165,
                     columnNumber: 15
                 }, ("TURBOPACK compile-time value", void 0)),
                 children: [
@@ -4258,7 +4258,7 @@ const navigationConfig = [
                             className: "h-4 w-4"
                         }, void 0, false, {
                             fileName: "[project]/lib/navigation.tsx",
-                            lineNumber: 165,
+                            lineNumber: 167,
                             columnNumber: 40
                         }, ("TURBOPACK compile-time value", void 0)),
                         href: "/audit"
